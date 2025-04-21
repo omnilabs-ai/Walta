@@ -1,11 +1,30 @@
-import Image from "next/image";
+"use client"
 
-export default function Home() {
+import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
+import { onAuthStateChanged, User } from "firebase/auth"
+import { auth } from "@/app/firebase/config"
+
+export default function HomeRedirect() {
+  const [loading, setLoading] = useState(true)
+  const router = useRouter()
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (user: User | null) => {
+      if (user) {
+        router.push("/dashboard")
+      } else {
+        router.push("/login")
+      }
+      setLoading(false)
+    })
+
+    return () => unsubscribe()
+  }, [router])
+
   return (
-      <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-          <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-              <h1>Home</h1>
-          </main>
-      </div>
-  );
+    <div className="min-h-screen flex items-center justify-center">
+      <p className="text-muted-foreground text-sm">Checking authentication...</p>
+    </div>
+  )
 }
