@@ -16,11 +16,14 @@ import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
 import { createUserWithEmailAndPassword } from "firebase/auth"
 import { auth } from "@/app/firebase/config"
+import { useSetAtom } from "jotai"
+import { currentUserAtom } from "@/app/atoms/settings"
 
 export function SignUpForm({
     className,
     ...props
 }: React.ComponentProps<"div">) {
+    const setCurrentUser = useSetAtom(currentUserAtom)
     const router = useRouter()
 
     const [email, setEmail] = useState("")
@@ -42,6 +45,13 @@ export function SignUpForm({
 
             const userCredential = await createUserWithEmailAndPassword(auth, email, password)
             const user = userCredential.user
+
+            // Set current user in global atom
+            setCurrentUser({
+                uid: user.uid,
+                email: user.email ?? "",
+                name: name,
+            })
 
             // Call API route to create Firestore user
             await fetch("/api/create-user", {

@@ -72,6 +72,7 @@ async function createNewUser(userId: string, name: string, email: string) {
       },
     ],
     stripe_id: "",
+    stripe_vendor_id: ""
   };
 
   try {
@@ -82,4 +83,23 @@ async function createNewUser(userId: string, name: string, email: string) {
   }
 }
 
-export { db, createNewUser };
+async function getUserById(userId: string) {
+  try {
+    const docRef = db.collection("users").doc(userId);
+    const doc = await docRef.get();
+
+    if (!doc.exists) {
+      console.log(`No user found with ID: ${userId}`);
+      return null;
+    }
+
+    const data = doc.data();
+    console.log(`User data for ${userId}:`, data);
+    return data;
+  } catch (error) {
+    console.error("Error fetching user from Firestore:", error);
+    return null;
+  }
+}
+
+export { db, createNewUser, getUserById };

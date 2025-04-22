@@ -17,11 +17,14 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { useSetAtom } from "jotai"
+import { currentUserAtom } from "@/app/atoms/settings"
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
+  const setCurrentUser = useSetAtom(currentUserAtom)
   const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
@@ -32,7 +35,13 @@ export function LoginForm({
 
     try {
       setLoading(true)
-      await signInWithEmailAndPassword(auth, email, password)
+      const userCredential = await signInWithEmailAndPassword(auth, email, password)
+      const user = userCredential.user
+      setCurrentUser({
+        uid: user.uid,
+        email: user.email ?? "",
+        name: user.displayName ?? "",
+      })
       toast.success("Logged in successfully!")
       router.push("/dashboard") 
     } catch (error: any) {
