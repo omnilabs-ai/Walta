@@ -1,45 +1,40 @@
-"use client"
+import { AppSidebar } from "@/components/app-sidebar"
+import { ChartAreaInteractive } from "@/components/chart-area-interactive"
+import { DataTable } from "@/components/data-table"
+import { SectionCards } from "@/components/section-cards"
+import { SiteHeader } from "@/components/site-header"
+import {
+  SidebarInset,
+  SidebarProvider,
+} from "@/components/ui/sidebar"
 
-import { signOut } from "firebase/auth"
-import { auth } from "@/app/firebase/config"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { toast } from "sonner"
-import { useEffect, useState } from "react"
-import { onAuthStateChanged, User } from "firebase/auth"
+import data from "./data.json"
 
-export default function Dashboard() {
-  const router = useRouter()
-  const [user, setUser] = useState<User | null>(null)
-
-  useEffect(() => {
-    // Optional: grab user info to show
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-      setUser(currentUser)
-    })
-
-    return () => unsubscribe()
-  }, [])
-
-  const handleSignOut = async () => {
-    try {
-      await signOut(auth)
-      toast.success("Signed out successfully!")
-      router.push("/login")
-    } catch (error) {
-      toast.error("Error signing out")
-      console.error(error)
-    }
-  }
-
+export default function Page() {
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <h1 className="text-xl font-semibold">Hello, {user?.email || "user"}!</h1>
-        <Button variant="destructive" onClick={handleSignOut}>
-          Sign Out
-        </Button>
-      </main>
-    </div>
+    <SidebarProvider
+      style={
+        {
+          "--sidebar-width": "calc(var(--spacing) * 72)",
+          "--header-height": "calc(var(--spacing) * 12)",
+        } as React.CSSProperties
+      }
+    >
+      <AppSidebar variant="inset" />
+      <SidebarInset>
+        <SiteHeader />
+        <div className="flex flex-1 flex-col">
+          <div className="@container/main flex flex-1 flex-col gap-2">
+            <div className="flex flex-col gap-4 py-4 md:gap-6 md:py-6">
+              <SectionCards />
+              <div className="px-4 lg:px-6">
+                <ChartAreaInteractive />
+              </div>
+              <DataTable data={data} />
+            </div>
+          </div>
+        </div>
+      </SidebarInset>
+    </SidebarProvider>
   )
 }
