@@ -23,7 +23,7 @@ const db = getFirestore();
 
 async function testFirestore() {
   try {
-    const snapshot = await db.collection("Users").get();
+    const snapshot = await db.collection("users").get();
     console.log(snapshot.docs.length);
     snapshot.forEach((doc: any) => {
       console.log(doc.id, "=>", doc.data());
@@ -34,7 +34,7 @@ async function testFirestore() {
   }
 }
 
-// testFirestore();
+testFirestore();
 
 async function createNewUser(userId: any, name: any, email: any) {
   const template = {
