@@ -1,5 +1,5 @@
-// Use npx ts-node app/firebase/firestoreUtils.ts to test the firestore connection
 // https://firebase.google.com/docs/firestore/quickstart#node.js
+// npx ts-node --compiler-options '{"module":"CommonJS"}' app/firebase/firestoreUtils.ts
 require("dotenv").config({ path: ".env.local" });
 const {
   initializeApp,
@@ -60,7 +60,7 @@ async function createNewUser(userId: any, name: any, email: any) {
   };
 
   try {
-    await db.collection("Users").doc(userId).set(template);
+    await db.collection("users").doc(userId).set(template);
     console.log(`New user added: ${userId}`);
   } catch (error) {
     console.error("Error adding user to Firestore:", error);
