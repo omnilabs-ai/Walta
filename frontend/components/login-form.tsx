@@ -34,7 +34,7 @@ export function LoginForm({
       setLoading(true)
       await signInWithEmailAndPassword(auth, email, password)
       toast.success("Logged in successfully!")
-      router.push("/") // Change to dashboard or homepage
+      router.push("/dashboard") 
     } catch (error: any) {
       console.error(error)
       toast.error(error.message || "Login failed")
