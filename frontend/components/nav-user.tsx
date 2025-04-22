@@ -1,5 +1,10 @@
 "use client"
 
+import { useRouter } from "next/navigation"
+import { signOut } from "firebase/auth"
+import { auth } from "@/app/firebase/config"
+import { toast } from "sonner"
+
 import {
   IconCreditCard,
   IconDotsVertical,
@@ -39,6 +44,17 @@ export function NavUser({
   }
 }) {
   const { isMobile } = useSidebar()
+  const router = useRouter()
+  const handleSignOut = async () => {
+    try {
+      await signOut(auth)
+      toast.success("Signed out successfully!")
+      router.push("/login")
+    } catch (error) {
+      console.error("Sign out failed:", error)
+      toast.error("Error signing out")
+    }
+  }
 
   return (
     <SidebarMenu>
@@ -98,7 +114,7 @@ export function NavUser({
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onSelect={handleSignOut}>
               <IconLogout />
               Log out
             </DropdownMenuItem>
