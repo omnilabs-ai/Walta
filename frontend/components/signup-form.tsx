@@ -31,6 +31,7 @@ export function SignUpForm({
 
     const handleSignUp = async (e: React.FormEvent) => {
         e.preventDefault()
+
         if (password !== confirmPassword) {
             toast.error("Passwords do not match.")
             return
@@ -38,9 +39,23 @@ export function SignUpForm({
 
         try {
             setLoading(true)
-            await createUserWithEmailAndPassword(auth, email, password)
+
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password)
+            const user = userCredential.user
+
+            // Call API route to create Firestore user
+            await fetch("/api/create-user", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    userId: user.uid,
+                    name,
+                    email
+                })
+            })
+
             toast.success("Account created successfully!")
-            router.push("/dashboard") // Redirect to login after signup
+            router.push("/dashboard")
         } catch (error: any) {
             console.error(error)
             toast.error(error.message || "Signup failed")
