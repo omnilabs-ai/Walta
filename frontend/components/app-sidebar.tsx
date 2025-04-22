@@ -226,8 +226,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
     view === "developer"
       ? [
           { title: "Dashboard", url: "/dashboard", icon: IconDashboard },
-          { title: "My Agents", url: "/agents", icon: IconUsers },
-          { title: "API Keys", url: "/api-keys", icon: IconKey },
+          { title: "Agent Keys", url: "/dashboard/agents", icon: IconUsers },
           { title: "Transactions", url: "/transactions", icon: IconExchange },
           { title: "Integration", url: "/integration", icon: IconPlug },
         ]
