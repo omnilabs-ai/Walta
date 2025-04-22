@@ -21,42 +21,57 @@ initializeApp({
 
 const db = getFirestore();
 
-async function testFirestore() {
-  try {
-    const snapshot = await db.collection("users").get();
-    console.log(snapshot.docs.length);
-    snapshot.forEach((doc: any) => {
-      console.log(doc.id, "=>", doc.data());
-    });
-    console.log("Firestore query successful");
-  } catch (error) {
-    console.error("Error querying Firestore:", error);
-  }
-}
+// async function testFirestore() {
+//   try {
+//     const snapshot = await db.collection("users").get();
+//     console.log(snapshot.docs.length);
+//     snapshot.forEach((doc: any) => {
+//       console.log(doc.id, "=>", doc.data());
+//     });
+//     console.log("Firestore query successful");
+//   } catch (error) {
+//     console.error("Error querying Firestore:", error);
+//   }
+// }
 
-testFirestore();
+// //testFirestore();
 
-async function createNewUser(userId: any, name: any, email: any) {
+// ----------------------------------- Actual utils for the app -----------------------------------------
+
+async function createNewUser(userId: string, name: string, email: string) {
   const template = {
     user_name: name,
     user_email: email,
-    transaction_history: {
-      agent_id: "",
-      vendor_id: "",
-      merchant_type: "",
-      date_time: Timestamp.now(),
-      amount: 0,
-      status: "Pending",
-      transaction_id: "",
-    },
-    total_amount_spent: 0,
-    agent_list: {
-      agent_id: "",
-      api_key: "",
-      active: false,
-      transaction_list: [],
-      agent_name: "",
-    },
+    transaction_history: [
+      {
+        agent_id: "",
+        vendor_id: "",
+        merchant_type: "",
+        datetime: Timestamp.now(),
+        amount: 0,
+        status: "pending",
+        transaction_id: "",
+      },
+    ],
+    total_amount: 0,
+    agent_list: [
+      {
+        agent_id: "",
+        agent_name: "",
+        api_key: "",
+        active: false,
+        transaction_list: [],
+      },
+    ],
+    products: [
+      {
+        product_name: "",
+        product_id: "",
+        "product description": "",
+        product_amount: 0,
+      },
+    ],
+    stripe_id: "",
   };
 
   try {
