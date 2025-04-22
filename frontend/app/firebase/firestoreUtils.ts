@@ -72,7 +72,7 @@ async function createNewUser(userId: string, name: string, email: string) {
       },
     ],
     stripe_id: "",
-    stripe_vendor_id: ""
+    stripe_vendor_id: "",
   };
 
   try {
@@ -102,4 +102,100 @@ async function getUserById(userId: string) {
   }
 }
 
-export { db, createNewUser, getUserById };
+// -------------------------------------- Agent Crud Operations --------------------------------------
+
+// 1️⃣ Add a new agent
+async function addAgentToUser(userId: string, agent: any) {
+  try {
+    const userRef = db.collection("users").doc(userId);
+    await userRef.update({
+      agent_list: FieldValue.arrayUnion(agent),
+    });
+    console.log(`Added agent ${agent.agent_id} to user ${userId}`);
+  } catch (error) {
+    console.error("Error adding agent:", error);
+  }
+}
+
+// 2️⃣ Update an existing agent by agent_id
+async function updateAgentInUser(
+  userId: string,
+  agentId: string,
+  updatedFields: Partial<any>
+) {
+  try {
+    const userRef = db.collection("users").doc(userId);
+    const doc = await userRef.get();
+    const data = doc.data();
+
+    if (!data || !data.agent_list) throw new Error("Agent list not found");
+
+    const updatedAgentList = data.agent_list.map((agent: any) =>
+      agent.agent_id === agentId ? { ...agent, ...updatedFields } : agent
+    );
+
+    await userRef.update({ agent_list: updatedAgentList });
+    console.log(`Updated agent ${agentId} for user ${userId}`);
+  } catch (error) {
+    console.error("Error updating agent:", error);
+  }
+}
+
+// 3️⃣ Update transaction_list for a specific agent
+async function updateAgentTransactionList(
+  userId: string,
+  agentId: string,
+  newTransactions: string[]
+) {
+  try {
+    const userRef = db.collection("users").doc(userId);
+    const doc = await userRef.get();
+    const data = doc.data();
+
+    if (!data || !data.agent_list) throw new Error("Agent list not found");
+
+    const updatedAgentList = data.agent_list.map((agent: any) =>
+      agent.agent_id === agentId
+        ? {
+            ...agent,
+            transaction_list: [...agent.transaction_list, ...newTransactions],
+          }
+        : agent
+    );
+
+    await userRef.update({ agent_list: updatedAgentList });
+    console.log(`Updated transactions for agent ${agentId} in user ${userId}`);
+  } catch (error) {
+    console.error("Error updating agent transactions:", error);
+  }
+}
+
+// 4️⃣ Optional: Delete agent by agent_id
+async function removeAgentFromUser(userId: string, agentId: string) {
+  try {
+    const userRef = db.collection("users").doc(userId);
+    const doc = await userRef.get();
+    const data = doc.data();
+
+    if (!data || !data.agent_list) throw new Error("Agent list not found");
+
+    const updatedAgentList = data.agent_list.filter(
+      (agent: any) => agent.agent_id !== agentId
+    );
+
+    await userRef.update({ agent_list: updatedAgentList });
+    console.log(`Removed agent ${agentId} from user ${userId}`);
+  } catch (error) {
+    console.error("Error removing agent:", error);
+  }
+}
+
+export {
+  db,
+  createNewUser,
+  getUserById,
+  addAgentToUser,
+  updateAgentInUser,
+  updateAgentTransactionList,
+  removeAgentFromUser,
+};
