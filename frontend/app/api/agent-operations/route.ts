@@ -1,10 +1,27 @@
-import { NextResponse } from "next/server"
+import { NextResponse, NextRequest } from "next/server"
 import {
   addAgentToUser,
   updateAgentInUser,
   updateAgentTransactionList,
-  removeAgentFromUser
+  removeAgentFromUser,
+  getAgentListForUser
 } from "@/app/firebase/firestoreUtils"
+
+// 🔁 GET — Get all agents for a user
+export async function GET(req: NextRequest) {
+    try {
+      const userId = req.nextUrl.searchParams.get("userId")
+      if (!userId) {
+        return NextResponse.json({ error: "Missing userId." }, { status: 400 })
+      }
+  
+      const agentList = await getAgentListForUser(userId)
+      return NextResponse.json({ agent_list: agentList })
+    } catch (error: any) {
+      console.error("Error fetching agent list:", error)
+      return NextResponse.json({ error: error.message || "Internal Server Error" }, { status: 500 })
+    }
+  }
 
 export async function POST(req: Request) {
   try {

@@ -104,6 +104,24 @@ async function getUserById(userId: string) {
 
 // -------------------------------------- Agent Crud Operations --------------------------------------
 
+async function getAgentListForUser(userId: string) {
+  try {
+    const userRef = db.collection("users").doc(userId)
+    const doc = await userRef.get()
+
+    if (!doc.exists) {
+      console.warn(`No user found for ID: ${userId}`)
+      return []
+    }
+
+    const data = doc.data()
+    return data?.agent_list || []
+  } catch (error) {
+    console.error("Error fetching agent list:", error)
+    return []
+  }
+}
+
 // 1️⃣ Add a new agent
 async function addAgentToUser(userId: string, agent: any) {
   try {
@@ -198,4 +216,5 @@ export {
   updateAgentInUser,
   updateAgentTransactionList,
   removeAgentFromUser,
+  getAgentListForUser
 };
