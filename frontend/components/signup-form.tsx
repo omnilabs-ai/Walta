@@ -46,12 +46,8 @@ export function SignUpForm({
             const userCredential = await createUserWithEmailAndPassword(auth, email, password)
             const user = userCredential.user
 
-            // Set current user in global atom
-            setCurrentUser({
-                uid: user.uid,
-                email: user.email ?? "",
-                name: name,
-            })
+            // No need to explicitly set currentUserAtom here
+            // onAuthStateChanged in protected layout will handle it
 
             // Call API route to create Firestore user
             await fetch("/api/create-user", {

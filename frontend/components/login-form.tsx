@@ -35,15 +35,11 @@ export function LoginForm({
 
     try {
       setLoading(true)
-      const userCredential = await signInWithEmailAndPassword(auth, email, password)
-      const user = userCredential.user
-      setCurrentUser({
-        uid: user.uid,
-        email: user.email ?? "",
-        name: user.displayName ?? "",
-      })
+      await signInWithEmailAndPassword(auth, email, password)
       toast.success("Logged in successfully!")
-      router.push("/dashboard") 
+      router.push("/dashboard")
+      // No need to explicitly set currentUserAtom here
+      // onAuthStateChanged in protected layout will handle it
     } catch (error: any) {
       console.error(error)
       toast.error(error.message || "Login failed")

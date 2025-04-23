@@ -4,6 +4,8 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { onAuthStateChanged } from "firebase/auth"
 import { auth } from "@/app/firebase/config"
+import { useSetAtom } from "jotai"
+import { currentUserAtom } from "@/app/atoms/settings"
 
 import { AppSidebar } from "@/components/app-sidebar"
 import { SiteHeader } from "@/components/site-header"
@@ -19,18 +21,43 @@ export default function ProtectedLayout({
 }) {
   const [authChecked, setAuthChecked] = useState(false)
   const router = useRouter()
+  const setCurrentUser = useSetAtom(currentUserAtom)
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, (user) => {
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (!user) {
+        // Clear user in atom and redirect to login
+        setCurrentUser(null)
         router.push("/login")
       } else {
+        // Update user in atom
+        try {
+          // Optionally fetch additional user data from Firestore if needed
+          // For example:
+          // const response = await fetch(`/api/get-user?userId=${user.uid}`);
+          // const userData = await response.json();
+
+          setCurrentUser({
+            uid: user.uid,
+            email: user.email || '',
+            name: user.displayName || '', // Use userData?.name if you fetch additional data
+          });
+        } catch (error) {
+          console.error('Error setting user data:', error);
+          // Fallback to basic user info if fetch fails
+          setCurrentUser({
+            uid: user.uid,
+            email: user.email || '',
+            name: user.displayName || '',
+          });
+        }
+
         setAuthChecked(true)
       }
     })
 
     return () => unsubscribe()
-  }, [router])
+  }, [router, setCurrentUser])
 
   if (!authChecked) {
     return (

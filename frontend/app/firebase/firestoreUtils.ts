@@ -1,6 +1,8 @@
 // https://firebase.google.com/docs/firestore/quickstart#node.js
 // npx ts-node --compiler-options '{"module":"CommonJS"}' app/firebase/firestoreUtils.ts
 require("dotenv").config({ path: ".env.local" });
+const fs = require("fs");
+const path = require("path");
 const {
   initializeApp,
   applicationDefault,
@@ -34,7 +36,31 @@ const db = getFirestore();
 //   }
 // }
 
-// //testFirestore();
+// testFirestore();
+
+// const agentDataPath = path.resolve(__dirname, "../(protected)/dashboard/agents/agent-data.json");
+// const agentData = JSON.parse(fs.readFileSync(agentDataPath));
+
+// async function importAgentsForUser(userId : string) {
+//   try {
+//     const userRef = db.collection("users").doc(userId);
+
+//     // Overwrite or set the full agent_list field
+//     await userRef.set(
+//       {
+//         agent_list: agentData,
+//       },
+//       { merge: true }
+//     );
+
+//     console.log(`✅ Successfully imported ${agentData.length} agents for user ${userId}`);
+//   } catch (error) {
+//     console.error("❌ Failed to import agents:", error);
+//   }
+// }
+
+// const testUserId = "S6H1RVag51WcUc1j5SMjSyv5mLV2"
+// importAgentsForUser(testUserId)
 
 // ----------------------------------- Actual utils for the app -----------------------------------------
 
