@@ -9,7 +9,7 @@ export interface AppUser {
     email: string
 }
 import { z } from "zod"
-import { schema } from "@/components/data-table"
+import { schema } from "@/components/agent-data-table"
 
 export const currentUserAtom = atomWithStorage<AppUser | null>('currentUser', null)
 

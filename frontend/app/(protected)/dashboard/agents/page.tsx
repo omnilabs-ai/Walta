@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react"
 import { useAtomValue } from "jotai"
 import { currentUserAtom } from "@/app/atoms/settings"
-import { DataTable } from "@/components/data-table"
-import { schema } from "@/components/data-table"
+import { AgentDataTable } from "@/components/agent-data-table"
+import { schema } from "@/components/agent-data-table"
 import { toast } from "sonner"
 
 export default function AgentTable() {
@@ -60,7 +60,7 @@ export default function AgentTable() {
       {loading ? (
         <div className="text-muted-foreground">Loading agent data...</div>
       ) : (
-        <DataTable data={agentData} />
+        <AgentDataTable data={agentData} />
       )}
     </div>
   )
