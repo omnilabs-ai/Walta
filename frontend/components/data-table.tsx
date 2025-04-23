@@ -35,6 +35,7 @@ import {
   IconLoader,
   IconPlus,
   IconTrendingUp,
+  IconClipboardCopy
 } from "@tabler/icons-react"
 import {
   ColumnDef,
@@ -53,7 +54,6 @@ import {
 } from "@tanstack/react-table"
 import { toast } from "sonner"
 import { z } from "zod"
-
 import { useIsMobile } from "@/hooks/use-mobile"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -101,6 +101,7 @@ import {
   TabsTrigger,
 } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
+import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
 
 export const schema = z.object({
   transaction_list: z.array(z.any()), // or a more specific schema if needed
@@ -108,6 +109,7 @@ export const schema = z.object({
   agent_name: z.string(),
   api_key: z.string(),
   active: z.boolean(),
+  created_at: z.any(),
 })
 
 async function updateAgent({
@@ -204,7 +206,9 @@ export function DataTable({
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     []
   )
-  const [sorting, setSorting] = React.useState<SortingState>([])
+  const [sorting, setSorting] = React.useState<SortingState>([
+    { id: "created_at", desc: true },
+  ])
   const [pagination, setPagination] = React.useState({
     pageIndex: 0,
     pageSize: 10,
@@ -221,7 +225,7 @@ export function DataTable({
     [data]
   )
 
-  
+
 
   const columns: ColumnDef<z.infer<typeof schema>>[] = [
     {
@@ -256,6 +260,23 @@ export function DataTable({
       enableHiding: false,
     },
     {
+      accessorKey: "created_at",
+      header: "Created At",
+      cell: ({ row }) => {
+        const date = new Date(row.original.created_at);
+        return (
+          <span>
+            {isNaN(date.getTime())
+              ? "Invalid Date"
+              : date.toLocaleString("en-US", {
+                dateStyle: "medium",
+                timeStyle: "short",
+              })}
+          </span>
+        );
+      }
+    },
+    {
       accessorKey: "agent_name",
       header: "Agent Name",
       cell: ({ row }) => {
@@ -278,13 +299,35 @@ export function DataTable({
     {
       accessorKey: "api_key",
       header: "API Key",
-      cell: ({ row }) => (
-        <div className="w-32">
-          <Badge variant="outline" className="text-muted-foreground px-1.5">
-            {row.original.api_key}
-          </Badge>
-        </div>
-      ),
+      cell: ({ row }) => {
+        const apiKey: string = row.original.api_key;
+        const visiblePart = apiKey.startsWith("walta-")
+          ? "walta-" + "••••••••"
+          : "••••••••";
+    
+        const handleCopy = () => {
+          navigator.clipboard.writeText(apiKey).then(() => {
+            toast.success("API key copied to clipboard");
+          });
+        };
+    
+        return (
+          <div className="flex items-center gap-1 w-32 truncate">
+            <Badge variant="outline" className="text-muted-foreground px-1.5">
+              {visiblePart}
+            </Badge>
+            <Button
+              type="button"
+              size="icon"
+              variant="ghost"
+              className="h-6 w-6 p-1"
+              onClick={handleCopy}
+            >
+              <IconClipboardCopy className="h-4 w-4 text-muted-foreground" />
+            </Button>
+          </div>
+        );
+      },
     },
     {
       accessorKey: "active",
@@ -310,12 +353,13 @@ export function DataTable({
     {
       id: "actions",
       cell: ({ row }) => {
-        const ref = React.useRef<() => void>(() => {})
-    
+        const ref = React.useRef<() => void>(() => { })
+        const item = row.original
+
         return (
           <>
             <AgentEditorDrawer
-              item={row.original}
+              item={item}
               updateAgentInTable={(updatedAgent) => {
                 setData((prev) =>
                   prev.map((agent) =>
@@ -324,8 +368,9 @@ export function DataTable({
                 )
               }}
               triggerRef={ref}
-              triggerFromName={false} // don't show agent name here
+              triggerFromName={false}
             />
+
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="size-8 text-muted-foreground">
@@ -333,14 +378,17 @@ export function DataTable({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-32">
-                <DropdownMenuItem
-                  onClick={() => {
-                    if (ref.current) ref.current()
-                  }}
+                <DropdownMenuItem onClick={() => ref.current?.()}>Edit</DropdownMenuItem>
+                <DeleteAgentDialog
+                  item={item}
+                  onConfirm={() =>
+                    setData((prev) =>
+                      prev.filter((agent) => agent.agent_id !== item.agent_id)
+                    )
+                  }
                 >
-                  Edit
-                </DropdownMenuItem>
-                <DropdownMenuItem>Delete</DropdownMenuItem>
+                  <DropdownMenuItem className="text-red-600">Delete</DropdownMenuItem>
+                </DeleteAgentDialog>
               </DropdownMenuContent>
             </DropdownMenu>
           </>
@@ -428,10 +476,7 @@ export function DataTable({
                 })}
             </DropdownMenuContent>
           </DropdownMenu>
-          <Button variant="outline" size="sm">
-            <IconPlus />
-            <span className="hidden lg:inline">Create Agent API Key</span>
-          </Button>
+          <CreateAgentDialog onAdd={(agent) => setData((prev) => [...prev, agent])} />
         </div>
       </div>
       <TabsContent
@@ -708,5 +753,169 @@ function AgentEditorDrawer({
         </DrawerFooter>
       </DrawerContent>
     </Drawer>
+  )
+}
+
+function DeleteAgentDialog({
+  item,
+  onConfirm,
+  children,
+}: {
+  item: z.infer<typeof schema>
+  onConfirm: () => void
+  children: React.ReactNode
+}) {
+  const currentUser = useAtomValue(currentUserAtom)
+  const [open, setOpen] = React.useState(false)
+  const [confirmInput, setConfirmInput] = React.useState("")
+  const [loading, setLoading] = React.useState(false)
+
+  const handleDelete = async () => {
+    if (!currentUser) return
+    setLoading(true)
+
+    try {
+      const res = await fetch("/api/agent-operations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          operation: "delete",
+          userId: currentUser.uid,
+          agentId: item.agent_id,
+        }),
+      })
+
+      const json = await res.json()
+      if (!res.ok) {
+        toast.error("Failed to delete agent: " + json.error)
+        return
+      }
+
+      toast.success("Agent deleted successfully")
+      onConfirm()
+      setOpen(false)
+    } catch (err) {
+      console.error("Delete agent error:", err)
+      toast.error("Unexpected error deleting agent")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <>
+      <div
+        onClick={() => setOpen(true)}
+        className="cursor-pointer px-2 py-1.5 text-sm text-red-600 hover:bg-red-100 rounded-sm"
+      >
+        Delete
+      </div>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Delete</DialogTitle>
+            <DialogDescription>
+              This will permanently remove <strong>{item.agent_name}</strong>.
+              <br />
+              Type the agent name below to confirm:
+            </DialogDescription>
+          </DialogHeader>
+
+          <Input
+            placeholder="Enter agent name"
+            value={confirmInput}
+            onChange={(e) => setConfirmInput(e.target.value)}
+          />
+
+          <DialogFooter>
+            <Button
+              variant="destructive"
+              disabled={confirmInput !== item.agent_name || loading}
+              onClick={handleDelete}
+            >
+              {loading ? "Deleting..." : "Confirm Delete"}
+            </Button>
+            <Button variant="outline" onClick={() => setOpen(false)}>
+              Cancel
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  )
+}
+
+function CreateAgentDialog({ onAdd }: { onAdd: (agent: z.infer<typeof schema>) => void }) {
+  const currentUser = useAtomValue(currentUserAtom)
+  const [open, setOpen] = React.useState(false)
+  const [name, setName] = React.useState("")
+  const [loading, setLoading] = React.useState(false)
+
+  const handleCreate = async () => {
+    if (!currentUser || !name.trim()) return
+    setLoading(true)
+
+    try {
+      const res = await fetch("/api/agent-operations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          operation: "add",
+          userId: currentUser.uid,
+          agent_name: name.trim(),
+        }),
+      })
+
+      const json = await res.json()
+      if (!res.ok) {
+        toast.error("Failed to create agent: " + json.error)
+        return
+      }
+
+      toast.success("Agent created!")
+      onAdd(json.agent)
+      setOpen(false)
+      setName("")
+    } catch (err) {
+      console.error(err)
+      toast.error("Unexpected error creating agent")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline" size="sm">
+          <IconPlus />
+          <span className="hidden lg:inline">Create Agent API Key</span>
+        </Button>
+      </DialogTrigger>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Create New Agent</DialogTitle>
+          <DialogDescription>
+            Enter a name for your new agent. The API key will be generated automatically.
+          </DialogDescription>
+        </DialogHeader>
+
+        <Input
+          placeholder="Agent name"
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
+
+        <DialogFooter>
+          <Button onClick={handleCreate} disabled={loading || !name.trim()}>
+            {loading ? "Creating..." : "Create"}
+          </Button>
+          <Button variant="outline" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }

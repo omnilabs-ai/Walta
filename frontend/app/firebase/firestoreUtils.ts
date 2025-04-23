@@ -68,35 +68,10 @@ async function createNewUser(userId: string, name: string, email: string) {
   const template = {
     user_name: name,
     user_email: email,
-    transaction_history: [
-      {
-        agent_id: "",
-        vendor_id: "",
-        merchant_type: "",
-        datetime: Timestamp.now(),
-        amount: 0,
-        status: "pending",
-        transaction_id: "",
-      },
-    ],
+    transaction_history: [],
     total_amount: 0,
-    agent_list: [
-      {
-        agent_id: "",
-        agent_name: "",
-        api_key: "",
-        active: false,
-        transaction_list: [],
-      },
-    ],
-    products: [
-      {
-        product_name: "",
-        product_id: "",
-        "product description": "",
-        product_amount: 0,
-      },
-    ],
+    agent_list: [],
+    products: [],
     stripe_id: "",
     stripe_vendor_id: "",
   };
@@ -132,19 +107,29 @@ async function getUserById(userId: string) {
 
 async function getAgentListForUser(userId: string) {
   try {
-    const userRef = db.collection("users").doc(userId)
-    const doc = await userRef.get()
+    const userRef = db.collection("users").doc(userId);
+    const doc = await userRef.get();
 
     if (!doc.exists) {
-      console.warn(`No user found for ID: ${userId}`)
-      return []
+      console.warn(`No user found for ID: ${userId}`);
+      return [];
     }
 
-    const data = doc.data()
-    return data?.agent_list || []
+    const data = doc.data();
+    const agentList = data?.agent_list || [];
+
+    const normalizedAgents = agentList.map((agent: any) => ({
+      ...agent,
+      created_at:
+        agent?.created_at?.toDate?.().toISOString?.() ??
+        agent.created_at ??
+        null,
+    }));
+
+    return normalizedAgents;
   } catch (error) {
-    console.error("Error fetching agent list:", error)
-    return []
+    console.error("Error fetching agent list:", error);
+    return [];
   }
 }
 
@@ -242,5 +227,5 @@ export {
   updateAgentInUser,
   updateAgentTransactionList,
   removeAgentFromUser,
-  getAgentListForUser
+  getAgentListForUser,
 };
