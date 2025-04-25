@@ -4,8 +4,7 @@ from firebase_admin import credentials, firestore
 from typing import Dict, Any, List, Optional
 import json
 
-from user_types import User, user_to_dict, dict_to_user, ApiKeyEntry, ProductEntry, apikey_to_dict, product_to_dict, dict_to_apikey, dict_to_product
-
+from build_db.user_types import User, user_to_dict, dict_to_user, ApiKeyEntry, ProductEntry, apikey_to_dict, product_to_dict, dict_to_apikey, dict_to_product
 
 class FirebaseClient:
     def __init__(self, credentials_path=None, use_sample=True):
@@ -180,6 +179,12 @@ class FirebaseClient:
             except AttributeError:
                 self.db.collection(self.apikeys_collection).document(doc.id).delete()
 
+    def get_all_apikeys(self) -> List[ApiKeyEntry]:
+        """Retrieve all API keys from Firestore."""
+        apikeys_ref = self.db.collection(self.apikeys_collection)
+        docs = apikeys_ref.get()
+        return [dict_to_apikey(doc.to_dict()) for doc in docs]
+
     # Products collection operations
     def create_product_entry(self, product_id: str, product_entry: ProductEntry) -> None:
         """Create a new product entry in the products collection."""
@@ -204,6 +209,12 @@ class FirebaseClient:
         """Delete a product entry from Firestore."""
         product_ref = self.db.collection(self.products_collection).document(product_id)
         product_ref.delete()
+
+    def get_all_products(self) -> List[ProductEntry]:
+        """Retrieve all products from Firestore."""
+        products_ref = self.db.collection(self.products_collection)
+        docs = products_ref.get()
+        return [dict_to_product(doc.to_dict()) for doc in docs]
 
     def delete_all_products(self) -> None:
         """Delete all documents in the products collection."""
