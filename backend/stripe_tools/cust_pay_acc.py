@@ -41,7 +41,7 @@ def process_payment(customer_id, payment_method, product_id, price_id, account_i
 if __name__ == "__main__":
     # Sample values
     customer_id = "cus_SAuc1FDcFZeJ52"
-    payment_method = "pm_1RGl6YFmFJe4gD9zlPx8NNfM"
+    payment_method = "pm_1RGZQyFmFJe4gD9ziBSAnKHW"#"pm_1RGl6YFmFJe4gD9zlPx8NNfM"
     product_id = "prod_SBAyFYKtiQeSUP"
     price_id = "price_1RGocZ2EJ37e8i9fwF3ogq3X"
     account_id = "acct_1RGo452EJ37e8i9f"

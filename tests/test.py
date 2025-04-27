@@ -19,3 +19,14 @@ json_data = {
 
 response = requests.post("http://localhost:3000/api/stripe/" + route, json=json_data)
 print(response.json())
+
+# route = "getPaymentMethod"
+# json_data = {
+#     "customerId": customer_id,
+#     "paymentMethodId": payment_method_id,
+#     "accountId": vendor_id
+# }
+
+# response = requests.post("http://localhost:3000/api/stripe/" + route, json=json_data)
+# print(response.json())
+
