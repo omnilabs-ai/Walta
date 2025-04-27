@@ -198,7 +198,6 @@ import {
   IconHelp,
   IconSearch,
   IconInnerShadowTop,
-  IconCreditCard,
 } from "@tabler/icons-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -230,7 +229,6 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
           { title: "Agent Keys", url: "/dashboard/agents", icon: IconUsers },
           { title: "Transactions", url: "/transactions", icon: IconExchange },
           { title: "Integration", url: "/integration", icon: IconPlug },
-          { title: "Payment", url: "/dashboard/payment", icon: IconCreditCard },
         ]
       : [
           { title: "Dashboard", url: "/dashboard", icon: IconDashboard },
@@ -255,8 +253,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
               <a href="/">
-                <IconInnerShadowTop className="!size-5" />
-                <span className="text-base font-semibold">Walta Inc.</span>
+                <img src="/logo.svg" alt="Walta Logo" className="ml-[-8px]" />
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>

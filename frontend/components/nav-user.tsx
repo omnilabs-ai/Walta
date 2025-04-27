@@ -104,9 +104,9 @@ export function NavUser({
                 <IconUserCircle />
                 Account
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.push("/profile/wallet")}>
                 <IconCreditCard />
-                Billing
+                Wallet
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <IconNotification />

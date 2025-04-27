@@ -30,32 +30,32 @@ async function processPayment(customerId: string, paymentMethodId: string, produ
             stripeAccount: accountId,
         });
 
-        console.log("price", price);
-
-        const paymentMethod = await stripe.paymentMethods.create({
-            customer: customerId,
-            payment_method: paymentMethodId,
-            stripeAccount: accountId,
-            type: 'card',
-        });
-
-        console.log("paymentMethod", paymentMethod);
-
-        const paymentIntent = await stripe.paymentIntents.create({
-            customer: customerId,
-            payment_method: paymentMethod,
-            amount: price.unit_amount, // Use the actual unit_amount from the price
-            currency: "usd",
-            confirm: true,
-            return_url: "http://localhost:3000/payment/success",
-            metadata: {
-                productId: productId,
-                priceId: priceId,
+        const paymentMethod = await stripe.paymentMethods.create(
+            {
+                payment_method: paymentMethodId,
+                customer: customerId,
             },
-            stripeAccount: accountId,
-        });
+            {
+                stripeAccount: accountId,
+            }
+        );
 
-        console.log("paymentIntent", paymentIntent);
+        const paymentIntent = await stripe.paymentIntents.create(
+            {
+                payment_method: paymentMethod.id,
+                amount: price.unit_amount, // Use the actual unit_amount from the price
+                currency: "usd",
+                confirm: true,
+                return_url: "http://localhost:3000/payment/success",
+                metadata: {
+                    productId: productId,
+                    priceId: priceId,
+                },
+            },
+            {
+                stripeAccount: accountId,
+            }
+        );
 
         return { success: true, paymentIntent };
     } catch (error) {
@@ -64,4 +64,13 @@ async function processPayment(customerId: string, paymentMethodId: string, produ
     }
 }
 
-export { createCustomer, getProductId, getCustomerPaymentMethod, processPayment };
+const createSetupIntent = async (customerId: string) => {
+    const setupIntent = await stripe.setupIntents.create(
+        {
+            customer: customerId,
+        },
+    );
+    return setupIntent.client_secret;
+}
+
+export { createCustomer, getProductId, getCustomerPaymentMethod, processPayment, createSetupIntent };
