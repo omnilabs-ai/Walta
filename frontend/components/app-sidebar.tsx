@@ -225,16 +225,16 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
   const navMain =
     view === "developer"
       ? [
-          { title: "Dashboard", url: "/dashboard", icon: IconDashboard },
-          { title: "Agent Keys", url: "/dashboard/agents", icon: IconUsers },
-          { title: "Transactions", url: "/transactions", icon: IconExchange },
-          { title: "Integration", url: "/integration", icon: IconPlug },
+          { title: "Dashboard", url: "/user", icon: IconDashboard },
+          { title: "Agent Keys", url: "/user/agents", icon: IconUsers },
+          { title: "Transactions", url: "/user/transactions", icon: IconExchange },
+          { title: "Integration", url: "/user/integration", icon: IconPlug },
         ]
       : [
-          { title: "Dashboard", url: "/dashboard", icon: IconDashboard },
-          { title: "Transactions", url: "/transactions", icon: IconExchange },
-          { title: "Agent Registry", url: "/agent-registry", icon: IconUserCog },
-          { title: "Products", url: "/products", icon: IconBoxSeam },
+          { title: "Dashboard", url: "/vendor", icon: IconDashboard },
+          { title: "Transactions", url: "/vendor/transactions", icon: IconExchange },
+          { title: "Agent Registry", url: "/vendor", icon: IconUserCog },
+          { title: "Products", url: "/vendor/products", icon: IconBoxSeam },
         ]
 
   const navSecondary = [

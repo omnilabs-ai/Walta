@@ -6,7 +6,7 @@ import { dashboardViewAtom } from "@/app/atoms/settings"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { SidebarTrigger } from "@/components/ui/sidebar"
-import { ViewToggle } from "./view-toggle"
+
 
 export function SiteHeader() {
   const [view, setView] = useAtom(dashboardViewAtom)
@@ -22,7 +22,6 @@ export function SiteHeader() {
           {view === "developer" ? "Developer Dashboard" : "Vendor Dashboard"}
         </h1>
         <div className="ml-auto flex items-center gap-2">
-          <ViewToggle />
           <Button variant="ghost" asChild size="sm" className="hidden sm:flex">
             <a
               href="https://github.com/shadcn-ui/ui/tree/main/apps/v4/app/(examples)/dashboard"

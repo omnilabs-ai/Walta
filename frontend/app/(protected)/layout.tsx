@@ -4,9 +4,9 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { onAuthStateChanged } from "firebase/auth"
 import { auth } from "@/app/firebase/auth"
-import { useSetAtom } from "jotai"
+import { useAtom, useSetAtom } from "jotai"
 import { currentUserAtom } from "@/app/atoms/settings"
-
+import { dashboardViewAtom } from "@/app/atoms/settings"
 import { AppSidebar } from "@/components/app-sidebar"
 import { SiteHeader } from "@/components/site-header"
 import {
@@ -22,6 +22,7 @@ export default function ProtectedLayout({
   const [authChecked, setAuthChecked] = useState(false)
   const router = useRouter()
   const setCurrentUser = useSetAtom(currentUserAtom)
+  const [view] = useAtom(dashboardViewAtom)
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -40,7 +41,8 @@ export default function ProtectedLayout({
           setCurrentUser({
             uid: user.uid,
             email: user.email || '',
-            name: user.displayName || '', // Use userData?.name if you fetch additional data
+            name: user.displayName || '',
+            mode: view  || "developer",
           });
         } catch (error) {
           console.error('Error setting user data:', error);
@@ -49,6 +51,7 @@ export default function ProtectedLayout({
             uid: user.uid,
             email: user.email || '',
             name: user.displayName || '',
+            mode: "developer"
           });
         }
 
@@ -57,7 +60,7 @@ export default function ProtectedLayout({
     })
 
     return () => unsubscribe()
-  }, [router, setCurrentUser])
+  }, [router, setCurrentUser, view])
 
   if (!authChecked) {
     return (

@@ -17,18 +17,19 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { useSetAtom } from "jotai"
-import { currentUserAtom } from "@/app/atoms/settings"
+import { useAtom } from "jotai"
+import { dashboardViewAtom } from "@/app/atoms/settings"
+import { ViewToggle } from "./view-toggle"
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
-  const setCurrentUser = useSetAtom(currentUserAtom)
   const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
+  const [view] = useAtom(dashboardViewAtom)
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -37,7 +38,7 @@ export function LoginForm({
       setLoading(true)
       await signInWithEmailAndPassword(auth, email, password)
       toast.success("Logged in successfully!")
-      router.push("/dashboard")
+      router.push(view === "vendor" ? "/vendor" : "/user")
       // No need to explicitly set currentUserAtom here
       // onAuthStateChanged in protected layout will handle it
     } catch (error: any) {
@@ -61,9 +62,8 @@ export function LoginForm({
           <form onSubmit={handleLogin}>
             <div className="grid gap-6">
               {/* Social Buttons - dummy for now */}
-              <div className="flex flex-col gap-4">
-                <Button variant="outline" className="w-full">Login with Apple</Button>
-                <Button variant="outline" className="w-full">Login with Google</Button>
+              <div className="flex justify-center">
+                <ViewToggle />
               </div>
 
               <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
