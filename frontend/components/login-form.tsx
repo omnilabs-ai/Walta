@@ -4,7 +4,7 @@ import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 import { signInWithEmailAndPassword } from "firebase/auth"
-import { auth } from "@/app/firebase/config"
+import { auth } from "@/app/firebase/auth"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"

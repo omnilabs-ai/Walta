@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createNewUser } from "../../firebase/firestoreUtils"
+import { createNewUser } from "../../firebase/firestore"
 
 export async function POST(req: Request) {
   const { userId, name, email } = await req.json();

@@ -8,6 +8,7 @@ export interface AppUser {
     name: string
     email: string
 }
+
 import { z } from "zod"
 import { schema } from "@/components/agent-data-table"
 

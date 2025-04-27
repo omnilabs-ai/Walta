@@ -1,19 +1,10 @@
 // https://firebase.google.com/docs/firestore/quickstart#node.js
 // npx ts-node --compiler-options '{"module":"CommonJS"}' app/firebase/firestoreUtils.ts
-require("dotenv").config({ path: ".env.local" });
-const fs = require("fs");
-const path = require("path");
-const {
-  initializeApp,
-  applicationDefault,
-  cert,
-} = require("firebase-admin/app");
-const {
-  getFirestore,
-  Timestamp,
-  FieldValue,
-  Filter,
-} = require("firebase-admin/firestore");
+import { initializeApp, cert } from "firebase-admin/app";
+import { getFirestore, FieldValue } from "firebase-admin/firestore";
+import dotenv from "dotenv";
+
+dotenv.config({ path: ".env.local" });
 
 const serviceAccount = JSON.parse(process.env.FIREBASE_ADMIN_SERVICE_ACCOUNT!);
 
@@ -23,46 +14,7 @@ initializeApp({
 
 const db = getFirestore();
 
-// async function testFirestore() {
-//   try {
-//     const snapshot = await db.collection("users").get();
-//     console.log(snapshot.docs.length);
-//     snapshot.forEach((doc: any) => {
-//       console.log(doc.id, "=>", doc.data());
-//     });
-//     console.log("Firestore query successful");
-//   } catch (error) {
-//     console.error("Error querying Firestore:", error);
-//   }
-// }
-
-// testFirestore();
-
-// const agentDataPath = path.resolve(__dirname, "../(protected)/dashboard/agents/agent-data.json");
-// const agentData = JSON.parse(fs.readFileSync(agentDataPath));
-
-// async function importAgentsForUser(userId : string) {
-//   try {
-//     const userRef = db.collection("users").doc(userId);
-
-//     // Overwrite or set the full agent_list field
-//     await userRef.set(
-//       {
-//         agent_list: agentData,
-//       },
-//       { merge: true }
-//     );
-
-//     console.log(`✅ Successfully imported ${agentData.length} agents for user ${userId}`);
-//   } catch (error) {
-//     console.error("❌ Failed to import agents:", error);
-//   }
-// }
-
-// const testUserId = "S6H1RVag51WcUc1j5SMjSyv5mLV2"
-// importAgentsForUser(testUserId)
-
-// ----------------------------------- Actual utils for the app -----------------------------------------
+// -------------------------------------- User Crud Operations --------------------------------------
 
 async function createNewUser(userId: string, name: string, email: string) {
   const template = {

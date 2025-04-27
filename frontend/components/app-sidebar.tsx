@@ -198,6 +198,7 @@ import {
   IconHelp,
   IconSearch,
   IconInnerShadowTop,
+  IconCreditCard,
 } from "@tabler/icons-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -229,6 +230,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
           { title: "Agent Keys", url: "/dashboard/agents", icon: IconUsers },
           { title: "Transactions", url: "/transactions", icon: IconExchange },
           { title: "Integration", url: "/integration", icon: IconPlug },
+          { title: "Payment", url: "/dashboard/payment", icon: IconCreditCard },
         ]
       : [
           { title: "Dashboard", url: "/dashboard", icon: IconDashboard },
