@@ -1,7 +1,9 @@
 import db from "./config";
+import { User } from "./types";
 
-async function createNewUser(userId: string, name: string, email: string) {
-  const newUser = {
+
+async function createNewUser(userId: string, name: string, email: string): Promise<User> {
+  const newUser: User = {
     user_name: name,
     user_email: email,
     transactions: {},
