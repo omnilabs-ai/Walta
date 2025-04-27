@@ -1,18 +1,10 @@
 // https://firebase.google.com/docs/firestore/quickstart#node.js
 // npx ts-node --compiler-options '{"module":"CommonJS"}' app/firebase/firestoreUtils.ts
-import { initializeApp, cert } from "firebase-admin/app";
-import { getFirestore, FieldValue } from "firebase-admin/firestore";
+import { FieldValue } from "firebase-admin/firestore";
+import db from "./firestore/config";
 import dotenv from "dotenv";
 
 dotenv.config({ path: ".env.local" });
-
-const serviceAccount = JSON.parse(process.env.FIREBASE_ADMIN_SERVICE_ACCOUNT!);
-
-initializeApp({
-  credential: cert(serviceAccount),
-});
-
-const db = getFirestore();
 
 // -------------------------------------- User Crud Operations --------------------------------------
 
