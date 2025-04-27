@@ -15,7 +15,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
 import { createUserWithEmailAndPassword } from "firebase/auth"
-import { auth } from "@/app/firebase/config"
+import { auth } from "@/app/firebase/auth"
 import { useSetAtom } from "jotai"
 import { currentUserAtom } from "@/app/atoms/settings"
 

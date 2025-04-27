@@ -5,7 +5,7 @@ import {
   updateAgentTransactionList,
   removeAgentFromUser,
   getAgentListForUser,
-} from "@/app/firebase/firestoreUtils";
+} from "@/app/firebase/firestore";
 import { v4 as uuidv4 } from "uuid";
 import crypto from "crypto";
 import { Timestamp } from "firebase-admin/firestore";

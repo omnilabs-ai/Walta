@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation"
 import { signOut } from "firebase/auth"
-import { auth } from "@/app/firebase/config"
+import { auth } from "@/app/firebase/auth"
 import { toast } from "sonner"
 
 import {
@@ -104,9 +104,9 @@ export function NavUser({
                 <IconUserCircle />
                 Account
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => router.push("/profile/wallet")}>
                 <IconCreditCard />
-                Billing
+                Wallet
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <IconNotification />

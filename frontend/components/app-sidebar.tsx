@@ -253,8 +253,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
               <a href="/">
-                <IconInnerShadowTop className="!size-5" />
-                <span className="text-base font-semibold">Walta Inc.</span>
+                <img src="/logo.svg" alt="Walta Logo" className="ml-[-8px]" />
               </a>
             </SidebarMenuButton>
           </SidebarMenuItem>

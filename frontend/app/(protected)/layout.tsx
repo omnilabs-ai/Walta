@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { onAuthStateChanged } from "firebase/auth"
-import { auth } from "@/app/firebase/config"
+import { auth } from "@/app/firebase/auth"
 import { useSetAtom } from "jotai"
 import { currentUserAtom } from "@/app/atoms/settings"
 
