@@ -2,21 +2,30 @@ import { Timestamp, FieldValue } from "firebase-admin/firestore";
 import db from "./config";
 import { v4 as uuidv4 } from 'uuid';
 import crypto from 'crypto';
+import { Agent, ApiData } from "./types";
 
-async function getUserAgents(userId: string) {
+async function getAgents(userId: string, agent_id?: string) {
   const userRef = db.collection("users").doc(userId);
   const doc = await userRef.get();
   const data = doc.data();
   const agentDict = data?.agents || {};
+
+  if (agent_id) {
+    if (!agentDict[agent_id]) {
+      throw new Error(`Agent with id ${agent_id} not found`);
+    }
+    return agentDict[agent_id];
+  }
+
   return agentDict;
 }
 
-async function addUserAgent(userId: string, agent_name: string) {
+async function addAgent(userId: string, agent_name: string) {
   const agent_id = uuidv4();
   const hash = crypto.randomBytes(16).toString("hex");
   const apikey = `walta-${hash}`;
 
-  const newAgent = {
+  const newAgent: Agent = {
     apikey,
     agent_name,
     active: true,
@@ -38,18 +47,16 @@ async function addUserAgent(userId: string, agent_name: string) {
   });
 
   const apiRef = db.collection("apikeys").doc(apikey);
-  await apiRef.set({
-    active: true,
-    agent_name: agent_name,
-    agent_id: agent_id,
-    created_at: Timestamp.now(),
+  const apiData: ApiData = {
     userId: userId,
-  });
+  };
 
-  return newAgent;
+  await apiRef.set(apiData);
+
+  return { newAgent, agent_id };
 }
 
-async function updateUserAgent(userId: string, agent_id: string, updatedFields: Partial<any>) {
+async function updateAgent(userId: string, agent_id: string, updatedFields: Partial<Agent>) {
   const userRef = db.collection("users").doc(userId);
   const doc = await userRef.get();
   const data = doc.data();
@@ -75,7 +82,7 @@ async function updateUserAgent(userId: string, agent_id: string, updatedFields: 
   return updatedAgent;
 }
 
-async function deleteUserAgent(userId: string, agent_id: string) {
+async function deleteAgent(userId: string, agent_id: string) {
   const userRef = db.collection("users").doc(userId);
   const doc = await userRef.get();
   const data = doc.data();
@@ -85,12 +92,14 @@ async function deleteUserAgent(userId: string, agent_id: string) {
     throw new Error(`Agent with id ${agent_id} not found`);
   }
 
+  const deletedAgent = agentDict[agent_id];
+
   await userRef.update({
     [`agents.${agent_id}`]: FieldValue.delete(),
   });
 
-  return { message: `Agent with id ${agent_id} deleted successfully` };
+  return deletedAgent;
 }
 
-export { getUserAgents, addUserAgent, updateUserAgent, deleteUserAgent };
+export { getAgents, addAgent, updateAgent, deleteAgent };
 

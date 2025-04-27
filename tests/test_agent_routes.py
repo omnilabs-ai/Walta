@@ -1,6 +1,6 @@
 import requests
 
-to_test = "createAgent"
+to_test = "getAgent"
 
 if to_test == "getAgent":
     json_data = {
@@ -14,7 +14,7 @@ elif to_test == "createAgent":
 elif to_test == "updateAgent":
     json_data = {
         "userId": "0MVmaqHYJTg7AhyiYfk9lVwIvJr2",
-        "agentId": "0e064de2-99ce-47a7-ba06-bb5eec375041",
+        "agentId": "9825e61b-fb16-470e-add0-5d58c5f88993",
         "updatedFields": {
             "agentName": "Updated Agent",
             "active": False
@@ -23,7 +23,7 @@ elif to_test == "updateAgent":
 elif to_test == "deleteAgent":
     json_data = {
         "userId": "0MVmaqHYJTg7AhyiYfk9lVwIvJr2",
-        "agentId": "0e064de2-99ce-47a7-ba06-bb5eec375041"
+        "agentId": "8a1627b6-b1b8-4d21-87b3-4f69575036ec"
     }
 
 
