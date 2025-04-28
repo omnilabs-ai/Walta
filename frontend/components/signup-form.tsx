@@ -50,7 +50,7 @@ export function SignUpForm({
             // onAuthStateChanged in protected layout will handle it
 
             // Call API route to create Firestore user
-            await fetch("/api/create-user", {
+            await fetch("/api/user/createUser", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({

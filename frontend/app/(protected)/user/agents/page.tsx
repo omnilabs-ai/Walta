@@ -1,58 +1,81 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { useAtomValue } from "jotai"
-import { currentUserAtom } from "@/app/atoms/settings"
-import { AgentDataTable } from "@/components/agent-data-table"
-import { schema } from "@/components/agent-data-table"
-import { toast } from "sonner"
+import { useEffect, useState } from "react";
+import { useAtomValue } from "jotai";
+import { currentUserAtom } from "@/app/atoms/settings";
+import { AgentDataTable } from "@/components/agent-data-table";
+import { toast } from "sonner";
+import { z } from "zod";
 
-export default function AgentTable() {
-  const currentUser = useAtomValue(currentUserAtom)
-  const [agentData, setAgentData] = useState([])
-  const [loading, setLoading] = useState(true)
+interface AgentRecord {
+  agent_name: string;
+  apikey: string;
+  active: boolean;
+  transaction_list: any[];
+  created_at?: any;
+}
+
+export const agentSchema = z.object({
+  transaction_list: z.array(z.any()),
+  agent_id: z.string(),
+  agent_name: z.string(),
+  apiKey: z.string(),
+  active: z.boolean(),
+  created_at: z.any(),
+});
+
+export default function AgentTablePage() {
+  const currentUser = useAtomValue(currentUserAtom);
+  const [agentData, setAgentData] = useState<z.infer<typeof agentSchema>[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchAgentList = async () => {
+    if (!currentUser?.uid) return;
+
+    try {
+      const res = await fetch(`/api/agents/getAgent?userId=${currentUser.uid}`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+      });
+
+      const json = await res.json();
+
+      if (!res.ok) {
+        toast.error("Failed to fetch agent list.");
+        console.error(json.error || "Unknown error");
+        return;
+      }
+
+      const agentsData = json as Record<string, AgentRecord>;
+
+      const agentArray = Object.entries(agentsData).map(([agent_id, agentData]) => ({
+        agent_id,
+        agent_name: agentData.agent_name ?? "Unnamed Agent",
+        apiKey: agentData.apikey ?? "",
+        active: agentData.active ?? false,
+        transaction_list: agentData.transaction_list ?? [],
+        created_at: agentData.created_at ?? null,
+      }));
+
+      setAgentData(agentArray);
+    } catch (error) {
+      console.error("Error fetching agent list:", error);
+      toast.error("Could not fetch agent data.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    // Skip if no user is available yet
-    if (!currentUser?.uid) return
-    
-    const fetchAgentList = async () => {
-      try {
-        const res = await fetch(`/api/agent-operations?userId=${currentUser.uid}`)
-        const json = await res.json()
+    fetchAgentList();
+  }, [currentUser?.uid]);
 
-        if (!res.ok) {
-          toast.error("Failed to fetch agent list.")
-          console.error(json.error || "Unknown error")
-          return
-        }
-
-        if (!Array.isArray(json.agent_list)) {
-          toast.error("Invalid data received from server.")
-          console.error("Expected an array, got:", json.agent_list)
-          return
-        }
-
-        setAgentData(json.agent_list)
-        toast.success("Agent data loaded!")
-      } catch (error) {
-        console.error("Error fetching agent list:", error)
-        toast.error("Could not fetch agent data.")
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchAgentList()
-  }, [currentUser?.uid])
-
-  // This shouldn't happen in protected routes, but just in case
   if (!currentUser) {
     return (
       <div className="px-4 lg:px-6">
         <div className="text-muted-foreground">Please log in to view your agents.</div>
       </div>
-    )
+    );
   }
 
   return (
@@ -60,8 +83,8 @@ export default function AgentTable() {
       {loading ? (
         <div className="text-muted-foreground">Loading agent data...</div>
       ) : (
-        <AgentDataTable data={agentData} />
+        <AgentDataTable initialData={agentData} refreshData={fetchAgentList} />
       )}
     </div>
-  )
+  );
 }
