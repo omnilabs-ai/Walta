@@ -1,9 +1,12 @@
+"use client"
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Shield, Brain, DatabaseZap, Code } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 const LandingPage = () => {
+  const router = useRouter()
   return (
     <div className="min-h-screen flex flex-col">
       {/* Navigation */}
@@ -24,11 +27,14 @@ const LandingPage = () => {
           <p className="text-xl md:text-2xl mb-8 text-gray-100">
             Secure, programmable financial identities enabling the next generation of AI agents
           </p>
-          <Button 
-            size="lg" 
+          <Button
+            size="lg"
             className="bg-white text-[#2a8365] hover:bg-gray-100 hover:text-[#1a3d2f] transition-colors"
+            onClick={() => {
+              router.push("/login")
+            }}
           >
-            Join the Waitlist
+            Log In
           </Button>
         </div>
       </header>
@@ -37,7 +43,7 @@ const LandingPage = () => {
       <section className="py-24 bg-gradient-to-b from-gray-50 to-white">
         <div className="container mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-16 text-gray-900">Core Platform Features</h2>
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             <Card className="group backdrop-blur-sm bg-white/90 border-2 border-gray-100 shadow-lg hover:shadow-xl hover:border-[#34D399]/30 transition-all duration-300">
               <CardContent className="pt-8 pb-8">
@@ -105,11 +111,11 @@ const LandingPage = () => {
           <p className="text-xl mb-8 max-w-2xl mx-auto">
             Join our platform and unlock secure financial capabilities for your AI agents
           </p>
-          <Button 
+          <Button
             size="lg"
             className="bg-white text-[#2a8365] hover:bg-gray-100 hover:text-[#1a3d2f] transition-colors"
           >
-            Join the Waitlist
+            Book A Call With Us!
           </Button>
         </div>
       </section>
