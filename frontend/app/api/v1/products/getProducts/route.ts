@@ -1,0 +1,25 @@
+import { NextRequest, NextResponse } from "next/server";
+import { queryProductData } from "@/app/firebase/firestore/misc";
+
+export async function GET(req: NextRequest) {
+    const { searchParams } = new URL(req.url);
+    const productId = searchParams.get('productId');
+    const name = searchParams.get('name');
+    const type = searchParams.get('type');
+    const price = searchParams.get('price');
+    const vendorName = searchParams.get('vendorName');
+
+    try {
+        const products = await queryProductData({
+            productId,
+            name,
+            type,
+            price: price ? Number(price) : undefined,
+            vendorName
+    });
+    
+        return NextResponse.json({ products }, { status: 200 });
+    } catch (error: any) {
+        return NextResponse.json({ message: "Error getting products", error: error.message }, { status: 500 });
+    }
+}

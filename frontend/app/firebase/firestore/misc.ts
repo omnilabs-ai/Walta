@@ -16,19 +16,47 @@ async function getProductData(productId: string) {
     return product.data();
 }
 
-async function queryProductData(productId?: string) {
-    const products = await db.collection("products").get();
-    if (productId) {
-        const product = products.docs.find((doc) => doc.id === productId);
-        if (!product) {
-            throw new Error("Product not found");
-        }
-        return product.data();
-    }
-    return products.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data()
-    }));
+interface ProductFilters {
+    productId?: string | null;
+    name?: string | null;
+    type?: string | null;
+    price?: number;
+    vendorName?: string | null;
 }
 
-export { getUserId, getProductData, queryProductData };
+async function queryProductData(filters: ProductFilters = {}) {
+    const products = await db.collection("products").get();
+    
+    return products.docs
+        .filter(doc => {
+            const data = doc.data();
+            if (filters.productId && doc.id !== filters.productId) return false;
+            if (filters.name && data.name !== filters.name) return false;
+            if (filters.type && data.type !== filters.type) return false;
+            if (filters.price && data.price !== filters.price) return false;
+            if (filters.vendorName && data.vendorName !== filters.vendorName) return false;
+            return true;
+        })
+        .map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }));
+}
+
+async function getAllVendors() {
+    const products = await db.collection("products").get();
+    const vendors = new Set(
+        products.docs.map(doc => doc.data().vendorName).filter(Boolean)
+    );
+    return Array.from(vendors);
+}
+
+async function getAllTypes() {
+    const products = await db.collection("products").get();
+    const types = new Set(
+        products.docs.map(doc => doc.data().type).filter(Boolean)
+    );
+    return Array.from(types);
+}
+
+export { getUserId, getProductData, queryProductData, getAllVendors, getAllTypes };
