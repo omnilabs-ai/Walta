@@ -34,6 +34,17 @@ export const transactionSchema = z.object({
   metadata: z.record(z.string()),
 });
 
+export const productSchema = z.object({
+  product_id: z.string(),
+  description: z.string(),
+  name: z.string(),
+  type: z.string(),
+  price: z.number(),
+  vendorName: z.string(),
+  user_id: z.string(),
+  created_at: z.instanceof(Timestamp),
+});
+
 export const agentsAtom = atom<z.infer<typeof agentSchema>[]>([])
 
 export const currentUserAtom = atomWithStorage<AppUser | null>('currentUser', null)
@@ -42,3 +53,4 @@ export const dashboardViewAtom = atomWithStorage<DashboardView>("dashboardView",
 
 export const agentListAtom = atom<z.infer<typeof schema>[]>([])
 export const transactionsAtom = atom<z.infer<typeof transactionSchema>[]>([]);
+export const productsAtom = atom<z.infer<typeof productSchema>[]>([])
