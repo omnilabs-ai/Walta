@@ -11,6 +11,7 @@ import {
   closestCenter,
   useSensor,
   useSensors,
+  MeasuringStrategy,  // Add this import
   type DragEndEvent,
   type UniqueIdentifier,
 } from "@dnd-kit/core"
@@ -85,7 +86,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Separator } from "@/components/ui/separator"
 import {
   Table,
   TableBody,
@@ -149,10 +149,10 @@ async function updateAgent({
 }
 
 // Create a separate component for the drag handle
-function DragHandle({ id }: { id: string }) {
+function DragHandle({ id }: { id: UniqueIdentifier }) {
   const { attributes, listeners } = useSortable({
     id,
-  })
+  });
 
   return (
     <Button
@@ -160,46 +160,59 @@ function DragHandle({ id }: { id: string }) {
       {...listeners}
       variant="ghost"
       size="icon"
-      className="text-muted-foreground size-7 hover:bg-transparent"
+      className="text-muted-foreground size-7 hover:bg-transparent cursor-grab active:cursor-grabbing"
+      type="button"
     >
       <IconGripVertical className="text-muted-foreground size-3" />
       <span className="sr-only">Drag to reorder</span>
     </Button>
-  )
+  );
 }
 
+
 function DraggableRow({ row }: { row: Row<z.infer<typeof schema>> }) {
-  const { transform, transition, setNodeRef, isDragging } = useSortable({
-    id: row.original.agent_id,
-  })
+  const {
+    setNodeRef,
+    attributes,
+    listeners,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: row.id });
 
   return (
     <TableRow
-      data-state={row.getIsSelected() && "selected"}
-      data-dragging={isDragging}
       ref={setNodeRef}
-      className="relative z-0 data-[dragging=true]:z-10 data-[dragging=true]:opacity-80"
       style={{
         transform: CSS.Transform.toString(transform),
-        transition: transition,
+        transition,
+        opacity: isDragging ? 0.5 : 1,
       }}
+      {...attributes}
     >
-      {row.getVisibleCells().map((cell) => (
-        <TableCell key={cell.id}>
+      {row.getVisibleCells().map((cell, cellIndex) => (
+        <TableCell
+          key={cell.id}
+          {...(cellIndex === 0 ? listeners : {})}
+        >
           {flexRender(cell.column.columnDef.cell, cell.getContext())}
         </TableCell>
       ))}
     </TableRow>
-  )
+  );
 }
+
 
 interface AgentDataTableProps {
-  initialData: z.infer<typeof schema>[];
-  refreshData: () => Promise<void>;
+  data: z.infer<typeof schema>[]; // only the data prop now
 }
 
-export function AgentDataTable({ initialData, refreshData }: AgentDataTableProps) {
-  const [data, setData] = React.useState(() => initialData)
+export function AgentDataTable({ data }: AgentDataTableProps) {
+  const [localData, setLocalData] = React.useState<z.infer<typeof schema>[]>(data);
+
+  React.useEffect(() => {
+    setLocalData(data);
+  }, [data]);
   const [rowSelection, setRowSelection] = React.useState({})
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({})
@@ -219,16 +232,15 @@ export function AgentDataTable({ initialData, refreshData }: AgentDataTableProps
     useSensor(TouchSensor, {}),
     useSensor(KeyboardSensor, {})
   )
+  const itemIds = React.useMemo<UniqueIdentifier[]>(() =>
+    localData.map(item => item.agent_id as UniqueIdentifier),
+    [localData]);
 
-  const dataIds = React.useMemo<UniqueIdentifier[]>(
-    () => (Array.isArray(data) ? data.map(({ agent_id }) => agent_id as UniqueIdentifier) : []),
-    [data]
-  );
   const columns: ColumnDef<z.infer<typeof schema>>[] = [
     {
       id: "drag",
       header: () => null,
-      cell: ({ row }) => <DragHandle id={row.original.agent_id} />,
+      cell: ({ row }) => <DragHandle id={row.id} />,
     },
     {
       id: "select",
@@ -260,19 +272,18 @@ export function AgentDataTable({ initialData, refreshData }: AgentDataTableProps
       accessorKey: "created_at",
       header: "Created At",
       cell: ({ row }) => {
-        const createdAt = row.original.created_at;
-        const date = createdAt?._seconds
-          ? new Date(createdAt._seconds * 1000)
-          : new Date(createdAt); // fallback if already a date
+        const createdAtRaw = row.original.created_at;
+        let date: Date | null = null;
+
+        if (createdAtRaw?.seconds) {
+          date = new Date(createdAtRaw.seconds * 1000);
+        }
 
         return (
           <span>
-            {isNaN(date.getTime())
-              ? "Invalid Date"
-              : date.toLocaleString("en-US", {
-                dateStyle: "medium",
-                timeStyle: "short",
-              })}
+            {date && !isNaN(date.getTime())
+              ? date.toLocaleDateString()
+              : "No date"}
           </span>
         );
       }
@@ -284,7 +295,6 @@ export function AgentDataTable({ initialData, refreshData }: AgentDataTableProps
         return (
           <AgentEditorDrawer
             item={row.original}
-            refreshData={refreshData}
             triggerFromName={true}
           />
         )
@@ -355,7 +365,6 @@ export function AgentDataTable({ initialData, refreshData }: AgentDataTableProps
           <>
             <AgentEditorDrawer
               item={item}
-              refreshData={refreshData}
               triggerRef={ref}
               triggerFromName={false}
             />
@@ -370,7 +379,6 @@ export function AgentDataTable({ initialData, refreshData }: AgentDataTableProps
                 <DropdownMenuItem onClick={() => ref.current?.()}>Edit</DropdownMenuItem>
                 <DeleteAgentDialog
                   item={item}
-                  refreshData={refreshData}
                 >
                   <DropdownMenuItem className="text-red-600">Delete</DropdownMenuItem>
                 </DeleteAgentDialog>
@@ -383,16 +391,10 @@ export function AgentDataTable({ initialData, refreshData }: AgentDataTableProps
   ]
 
   const table = useReactTable({
-    data,
+    data: localData,
     columns,
-    state: {
-      sorting,
-      columnVisibility,
-      rowSelection,
-      columnFilters,
-      pagination,
-    },
-    getRowId: (row) => row.agent_id.toString(),
+    state: { sorting, pagination, rowSelection, columnFilters, columnVisibility },
+    getRowId: (row) => row.agent_id,
     enableRowSelection: true,
     onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,
@@ -408,13 +410,26 @@ export function AgentDataTable({ initialData, refreshData }: AgentDataTableProps
   })
 
   function handleDragEnd(event: DragEndEvent) {
-    const { active, over } = event
+    const { active, over } = event;
+
+    console.log("Drag end:", { active, over });
+
     if (active && over && active.id !== over.id) {
-      setData((data) => {
-        const oldIndex = dataIds.indexOf(active.id)
-        const newIndex = dataIds.indexOf(over.id)
-        return arrayMove(data, oldIndex, newIndex)
-      })
+      setLocalData((prevData) => {
+        const oldIndex = prevData.findIndex(item => item.agent_id === active.id);
+        const newIndex = prevData.findIndex(item => item.agent_id === over.id);
+
+        console.log("Indices:", { oldIndex, newIndex });
+
+        if (oldIndex === -1 || newIndex === -1) {
+          console.error("Could not find indices for drag items");
+          return prevData;
+        }
+
+        const newData = arrayMove(prevData, oldIndex, newIndex);
+        console.log("Data after move:", newData.map(d => d.agent_name));
+        return newData;
+      });
     }
   }
 
@@ -461,7 +476,7 @@ export function AgentDataTable({ initialData, refreshData }: AgentDataTableProps
                 })}
             </DropdownMenuContent>
           </DropdownMenu>
-          <CreateAgentDialog onAdd={refreshData} />
+          <CreateAgentDialog />
         </div>
       </div>
       <TabsContent
@@ -474,7 +489,11 @@ export function AgentDataTable({ initialData, refreshData }: AgentDataTableProps
             modifiers={[restrictToVerticalAxis]}
             onDragEnd={handleDragEnd}
             sensors={sensors}
-            id={sortableId}
+            measuring={{
+              droppable: {
+                strategy: MeasuringStrategy.Always
+              }
+            }}
           >
             <Table>
               <TableHeader className="bg-muted sticky top-0 z-10">
@@ -498,7 +517,7 @@ export function AgentDataTable({ initialData, refreshData }: AgentDataTableProps
               <TableBody className="**:data-[slot=table-cell]:first:w-8">
                 {table.getRowModel().rows?.length ? (
                   <SortableContext
-                    items={dataIds}
+                    items={table.getRowModel().rows.map(row => row.id)}
                     strategy={verticalListSortingStrategy}
                   >
                     {table.getRowModel().rows.map((row) => (
@@ -618,12 +637,10 @@ export function AgentDataTable({ initialData, refreshData }: AgentDataTableProps
 
 function AgentEditorDrawer({
   item,
-  refreshData,
   triggerFromName,
   triggerRef,
 }: {
   item: z.infer<typeof schema>;
-  refreshData: () => Promise<void>;
   triggerFromName?: boolean;
   triggerRef?: React.MutableRefObject<() => void>;
 }) {
@@ -649,7 +666,6 @@ function AgentEditorDrawer({
 
     if (success) {
       toast.success("Agent updated.");
-      await refreshData(); // <--- 🔥 call refresh after update
       setOpen(false);
     }
   }
@@ -739,11 +755,9 @@ function AgentEditorDrawer({
 
 function DeleteAgentDialog({
   item,
-  refreshData,
   children,
 }: {
   item: z.infer<typeof schema>;
-  refreshData: () => Promise<void>;
   children: React.ReactNode;
 }) {
   const currentUser = useAtomValue(currentUserAtom)
@@ -773,7 +787,6 @@ function DeleteAgentDialog({
 
       if (res.ok) {
         toast.success("Agent deleted successfully");
-        await refreshData(); // <--- 🔥 call refresh after delete
         setOpen(false);
       }
     } catch (err) {
@@ -828,15 +841,15 @@ function DeleteAgentDialog({
   )
 }
 
-function CreateAgentDialog({ onAdd }: { onAdd: () => Promise<void> }) {
-  const currentUser = useAtomValue(currentUserAtom)
-  const [open, setOpen] = React.useState(false)
-  const [name, setName] = React.useState("")
-  const [loading, setLoading] = React.useState(false)
+function CreateAgentDialog() {
+  const currentUser = useAtomValue(currentUserAtom);
+  const [open, setOpen] = React.useState(false);
+  const [name, setName] = React.useState("");
+  const [loading, setLoading] = React.useState(false);
 
   const handleCreate = async () => {
-    if (!currentUser || !name.trim()) return
-    setLoading(true)
+    if (!currentUser || !name.trim()) return;
+    setLoading(true);
 
     try {
       const res = await fetch("/api/agents/createAgent", {
@@ -848,23 +861,22 @@ function CreateAgentDialog({ onAdd }: { onAdd: () => Promise<void> }) {
         }),
       });
 
-      const json = await res.json()
+      const json = await res.json();
       if (!res.ok) {
-        toast.error("Failed to create agent: " + json.error)
-        return
+        toast.error("Failed to create agent: " + json.error);
+        return;
       }
 
-      toast.success("Agent created!")
-      await onAdd();
-      setOpen(false)
-      setName("")
+      toast.success("Agent created!");
+      setOpen(false);
+      setName("");
     } catch (err) {
-      console.error(err)
-      toast.error("Unexpected error creating agent")
+      console.error(err);
+      toast.error("Unexpected error creating agent");
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -898,5 +910,5 @@ function CreateAgentDialog({ onAdd }: { onAdd: () => Promise<void> }) {
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

@@ -1,6 +1,9 @@
 import { atom } from "jotai"
 import { atomWithStorage } from 'jotai/utils'
 
+import { z } from "zod"
+import { schema } from "@/components/agent-data-table"
+
 export type DashboardView = "developer" | "vendor"
 
 export interface AppUser {
@@ -10,8 +13,16 @@ export interface AppUser {
     mode: string
 }
 
-import { z } from "zod"
-import { schema } from "@/components/agent-data-table"
+export const agentSchema = z.object({
+    transaction_list: z.array(z.any()),
+    agent_id: z.string(),
+    agent_name: z.string(),
+    apiKey: z.string(),
+    active: z.boolean(),
+    created_at: z.any(),
+  })
+  
+export const agentsAtom = atom<z.infer<typeof agentSchema>[]>([])
 
 export const currentUserAtom = atomWithStorage<AppUser | null>('currentUser', null)
 
