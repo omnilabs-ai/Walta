@@ -1,6 +1,6 @@
 import requests
 
-to_test = "updateProduct"
+to_test = "createProduct"
 
 user_id = "0MVmaqHYJTg7AhyiYfk9lVwIvJr2"
 product_id = "e4f2d007-f9bb-4da4-9ead-0cb0420e12a7"
@@ -15,7 +15,9 @@ elif to_test == "createProduct":
         "userId": user_id,
         "name": "Test Product",
         "description": "This is a test product",
-        "price": 19.99
+        "price": 19.99,
+        "type": "test",
+        "vendorName": "Test Vendor"
     }
 elif to_test == "updateProduct":
     json_data = {
@@ -23,7 +25,9 @@ elif to_test == "updateProduct":
         "updateData": {
             "name": "Updated Product",
             "description": "Updated description",
-            "price": 29.99
+            "price": 29.99,
+            "type": "test",
+            "vendorName": "Updated Vendor"
         }
     }
 elif to_test == "deleteProduct":

@@ -14,7 +14,9 @@ type User = {
 type Product = {
     description: string;
     name: string;
+    type: string;
     price: number;
+    vendorName: string;
     user_id: string;
     created_at: Timestamp;
 }

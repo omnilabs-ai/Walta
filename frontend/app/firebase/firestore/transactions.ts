@@ -20,9 +20,16 @@ async function addTransaction(user_id: string, transaction: Omit<Transaction, 't
     transactions: {
       ...data?.transactions,
       [transaction_id]: newTransaction
+    },
+    agents: {
+      ...data?.agents,
+      [transaction.from_agent_id]: {
+        ...data?.agents?.[transaction.from_agent_id],
+        transaction_list: [...(data?.agents?.[transaction.from_agent_id]?.transaction_list || []), transaction_id]
+      }
     }
   });
-  
+
   return { newTransaction, transaction_id };
 }
 

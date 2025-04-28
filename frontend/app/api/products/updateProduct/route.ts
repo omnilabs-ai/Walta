@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { updateProduct } from "@/app/firebase/firestore/products";
 
 export async function POST(request: NextRequest) {
-  const { userId, productId, updateData } = await request.json();
+  const { productId, updateData } = await request.json();
 
   try {
     const updatedProduct = await updateProduct(productId, updateData);
