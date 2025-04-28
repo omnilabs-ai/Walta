@@ -107,7 +107,7 @@ export const schema = z.object({
   transaction_list: z.array(z.any()), // or a more specific schema if needed
   agent_id: z.string(),
   agent_name: z.string(),
-  api_key: z.string(),
+  apiKey: z.string(),
   active: z.boolean(),
   created_at: z.any(),
 })
@@ -122,16 +122,15 @@ async function updateAgent({
   updatedFields: Partial<z.infer<typeof schema>>
 }) {
   try {
-    const res = await fetch("/api/agent-operations", {
+    const res = await fetch("/api/agents/updateAgent", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        operation: "update",
         userId,
         agentId,
         updatedFields,
       }),
-    })
+    });
 
     const json = await res.json()
 
@@ -194,11 +193,12 @@ function DraggableRow({ row }: { row: Row<z.infer<typeof schema>> }) {
   )
 }
 
-export function AgentDataTable({
-  data: initialData,
-}: {
-  data: z.infer<typeof schema>[]
-}) {
+interface AgentDataTableProps {
+  initialData: z.infer<typeof schema>[];
+  refreshData: () => Promise<void>;
+}
+
+export function AgentDataTable({ initialData, refreshData }: AgentDataTableProps) {
   const [data, setData] = React.useState(() => initialData)
   const [rowSelection, setRowSelection] = React.useState({})
   const [columnVisibility, setColumnVisibility] =
@@ -221,12 +221,9 @@ export function AgentDataTable({
   )
 
   const dataIds = React.useMemo<UniqueIdentifier[]>(
-    () => data?.map(({ agent_id }) => agent_id) || [],
+    () => (Array.isArray(data) ? data.map(({ agent_id }) => agent_id as UniqueIdentifier) : []),
     [data]
-  )
-
-
-
+  );
   const columns: ColumnDef<z.infer<typeof schema>>[] = [
     {
       id: "drag",
@@ -263,7 +260,11 @@ export function AgentDataTable({
       accessorKey: "created_at",
       header: "Created At",
       cell: ({ row }) => {
-        const date = new Date(row.original.created_at);
+        const createdAt = row.original.created_at;
+        const date = createdAt?._seconds
+          ? new Date(createdAt._seconds * 1000)
+          : new Date(createdAt); // fallback if already a date
+
         return (
           <span>
             {isNaN(date.getTime())
@@ -283,13 +284,7 @@ export function AgentDataTable({
         return (
           <AgentEditorDrawer
             item={row.original}
-            updateAgentInTable={(updatedAgent) => {
-              setData((prev) =>
-                prev.map((agent) =>
-                  agent.agent_id === updatedAgent.agent_id ? updatedAgent : agent
-                )
-              )
-            }}
+            refreshData={refreshData}
             triggerFromName={true}
           />
         )
@@ -300,17 +295,17 @@ export function AgentDataTable({
       accessorKey: "api_key",
       header: "API Key",
       cell: ({ row }) => {
-        const apiKey: string = row.original.api_key;
+        const apiKey: string = row.original.apiKey;
         const visiblePart = apiKey.startsWith("walta-")
           ? "walta-" + "••••••••"
           : "••••••••";
-    
+
         const handleCopy = () => {
           navigator.clipboard.writeText(apiKey).then(() => {
             toast.success("API key copied to clipboard");
           });
         };
-    
+
         return (
           <div className="flex items-center gap-1 w-32 truncate">
             <Badge variant="outline" className="text-muted-foreground px-1.5">
@@ -360,13 +355,7 @@ export function AgentDataTable({
           <>
             <AgentEditorDrawer
               item={item}
-              updateAgentInTable={(updatedAgent) => {
-                setData((prev) =>
-                  prev.map((agent) =>
-                    agent.agent_id === updatedAgent.agent_id ? updatedAgent : agent
-                  )
-                )
-              }}
+              refreshData={refreshData}
               triggerRef={ref}
               triggerFromName={false}
             />
@@ -381,11 +370,7 @@ export function AgentDataTable({
                 <DropdownMenuItem onClick={() => ref.current?.()}>Edit</DropdownMenuItem>
                 <DeleteAgentDialog
                   item={item}
-                  onConfirm={() =>
-                    setData((prev) =>
-                      prev.filter((agent) => agent.agent_id !== item.agent_id)
-                    )
-                  }
+                  refreshData={refreshData}
                 >
                   <DropdownMenuItem className="text-red-600">Delete</DropdownMenuItem>
                 </DeleteAgentDialog>
@@ -476,7 +461,7 @@ export function AgentDataTable({
                 })}
             </DropdownMenuContent>
           </DropdownMenu>
-          <CreateAgentDialog onAdd={(agent) => setData((prev) => [...prev, agent])} />
+          <CreateAgentDialog onAdd={refreshData} />
         </div>
       </div>
       <TabsContent
@@ -633,14 +618,14 @@ export function AgentDataTable({
 
 function AgentEditorDrawer({
   item,
-  updateAgentInTable,
+  refreshData,
   triggerFromName,
   triggerRef,
 }: {
-  item: z.infer<typeof schema>
-  updateAgentInTable: (updated: z.infer<typeof schema>) => void
-  triggerFromName?: boolean
-  triggerRef?: React.MutableRefObject<() => void>
+  item: z.infer<typeof schema>;
+  refreshData: () => Promise<void>;
+  triggerFromName?: boolean;
+  triggerRef?: React.MutableRefObject<() => void>;
 }) {
   const isMobile = useIsMobile()
   const currentUser = useAtomValue(currentUserAtom)
@@ -663,13 +648,9 @@ function AgentEditorDrawer({
     })
 
     if (success) {
-      const updatedAgent = {
-        ...item,
-        ...updatedFields,
-      }
-      updateAgentInTable(updatedAgent)
-      toast.success("Agent updated.")
-      setOpen(false)
+      toast.success("Agent updated.");
+      await refreshData(); // <--- 🔥 call refresh after update
+      setOpen(false);
     }
   }
 
@@ -714,7 +695,7 @@ function AgentEditorDrawer({
 
             <div className="flex flex-col gap-3">
               <Label htmlFor="api_key">API Key</Label>
-              <Input id="api_key" value={item.api_key} readOnly />
+              <Input id="api_key" value={item.apiKey} readOnly />
             </div>
 
             <div className="flex flex-col gap-3">
@@ -758,12 +739,12 @@ function AgentEditorDrawer({
 
 function DeleteAgentDialog({
   item,
-  onConfirm,
+  refreshData,
   children,
 }: {
-  item: z.infer<typeof schema>
-  onConfirm: () => void
-  children: React.ReactNode
+  item: z.infer<typeof schema>;
+  refreshData: () => Promise<void>;
+  children: React.ReactNode;
 }) {
   const currentUser = useAtomValue(currentUserAtom)
   const [open, setOpen] = React.useState(false)
@@ -775,15 +756,14 @@ function DeleteAgentDialog({
     setLoading(true)
 
     try {
-      const res = await fetch("/api/agent-operations", {
+      const res = await fetch("/api/agents/deleteAgent", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          operation: "delete",
           userId: currentUser.uid,
           agentId: item.agent_id,
         }),
-      })
+      });
 
       const json = await res.json()
       if (!res.ok) {
@@ -791,9 +771,11 @@ function DeleteAgentDialog({
         return
       }
 
-      toast.success("Agent deleted successfully")
-      onConfirm()
-      setOpen(false)
+      if (res.ok) {
+        toast.success("Agent deleted successfully");
+        await refreshData(); // <--- 🔥 call refresh after delete
+        setOpen(false);
+      }
     } catch (err) {
       console.error("Delete agent error:", err)
       toast.error("Unexpected error deleting agent")
@@ -846,7 +828,7 @@ function DeleteAgentDialog({
   )
 }
 
-function CreateAgentDialog({ onAdd }: { onAdd: (agent: z.infer<typeof schema>) => void }) {
+function CreateAgentDialog({ onAdd }: { onAdd: () => Promise<void> }) {
   const currentUser = useAtomValue(currentUserAtom)
   const [open, setOpen] = React.useState(false)
   const [name, setName] = React.useState("")
@@ -857,15 +839,14 @@ function CreateAgentDialog({ onAdd }: { onAdd: (agent: z.infer<typeof schema>) =
     setLoading(true)
 
     try {
-      const res = await fetch("/api/agent-operations", {
+      const res = await fetch("/api/agents/createAgent", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          operation: "add",
           userId: currentUser.uid,
           agent_name: name.trim(),
         }),
-      })
+      });
 
       const json = await res.json()
       if (!res.ok) {
@@ -874,7 +855,7 @@ function CreateAgentDialog({ onAdd }: { onAdd: (agent: z.infer<typeof schema>) =
       }
 
       toast.success("Agent created!")
-      onAdd(json.agent)
+      await onAdd();
       setOpen(false)
       setName("")
     } catch (err) {
