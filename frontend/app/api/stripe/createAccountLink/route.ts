@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createAccountLink } from "@/app/stripe/accounts";
 
-export async function POST(request: NextRequest) {
-    const { accountId } = await request.json();
+export async function GET(request: NextRequest) {
+    const { searchParams } = new URL(request.url);
+    const accountId = searchParams.get('accountId') || "";
     const accountLink = await createAccountLink(accountId);
-    return NextResponse.json({ accountLink });
+    return NextResponse.json(accountLink);
 }

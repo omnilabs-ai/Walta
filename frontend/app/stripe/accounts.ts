@@ -1,9 +1,8 @@
 import stripe from "./config";
 
-async function createAccount(name: string, email: string) {
+async function createAccount(email: string) {
     const account = await stripe.accounts.create({
         country: 'US',
-        name: name,
         email: email,
         controller: {
             fees: {
@@ -23,8 +22,8 @@ async function createAccount(name: string, email: string) {
 async function createAccountLink(accountId: string) {
     const accountLink = await stripe.accountLinks.create({
         account: accountId,
-        refresh_url: 'https://example.com/reauth',
-        return_url: 'https://example.com/return',
+        refresh_url: `${process.env.NEXT_PUBLIC_HOST_URL}/vendor`,
+        return_url: `${process.env.NEXT_PUBLIC_HOST_URL}/vendor`,
         type: 'account_onboarding',
     });
     return accountLink;

@@ -23,14 +23,7 @@ export default function VendorLayout({
 
       try {
         // Get user's Stripe vendor ID from their profile
-        const userData = await fetch("/api/user/getUser", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            userId: currentUser.uid,
-            params: ["stripe_vendor_id"]
-          }),
-        }).then(res => res.json())
+        const userData = await fetch(`/api/user/getUser?userId=${currentUser.uid}&params=stripe_vendor_id`).then(res => res.json())
 
         const accountId = userData.stripe_vendor_id
 
@@ -41,23 +34,17 @@ export default function VendorLayout({
         }
 
         // Check account onboarding status
-        const statusResponse = await fetch("/api/stripe/accountStatus", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ accountId }),
-        }).then(res => res.json())
+        const statusResponse = await fetch(`/api/stripe/accountStatus?accountId=${accountId}`).then(res => res.json())
+        console.log("statusResponse", statusResponse)
 
         // If onboarding not complete, get onboarding link and redirect
-        if (!statusResponse.accountStatus.is_details_submitted) {
-          const linkResponse = await fetch("/api/stripe/createAccountLink", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ accountId }),
-          }).then(res => res.json())
+        if (!statusResponse.is_details_submitted) {
+          const linkResponse = await fetch(`/api/stripe/createAccountLink?accountId=${accountId}`).then(res => res.json())
+          console.log("linkResponse", linkResponse)
 
           // Redirect to Stripe onboarding
-          if (linkResponse.accountLink?.url) {
-            router.push(linkResponse.accountLink.url)
+          if (linkResponse.url) {
+            router.push(linkResponse.url)
             return
           }
         }
