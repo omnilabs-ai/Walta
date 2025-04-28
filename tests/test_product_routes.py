@@ -1,9 +1,9 @@
 import requests
 
-to_test = "deleteProduct"
+to_test = "updateProduct"
 
 user_id = "0MVmaqHYJTg7AhyiYfk9lVwIvJr2"
-product_id = "d6527ea2-9acd-4fd8-99ad-9b0009e453e1"
+product_id = "e4f2d007-f9bb-4da4-9ead-0cb0420e12a7"
 
 
 if to_test == "getProduct":
@@ -19,7 +19,6 @@ elif to_test == "createProduct":
     }
 elif to_test == "updateProduct":
     json_data = {
-        "userId": user_id,
         "productId": product_id,
         "updateData": {
             "name": "Updated Product",
@@ -40,4 +39,4 @@ if response.status_code == 200:
     print(response.json())
 else:
     print(f"Error {to_test}")
-    print(response) 
+    print(response.json()) 
