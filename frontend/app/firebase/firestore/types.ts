@@ -29,6 +29,7 @@ type Agent = {
     active: boolean;
     transaction_list: string[];
     created_at: Timestamp;
+    params: Record<string, any>;
 }
   
 type ApiData = {

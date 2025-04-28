@@ -31,6 +31,7 @@ async function addAgent(userId: string, agent_name: string) {
     active: true,
     transaction_list: [],
     created_at: Timestamp.now(),
+    params: {},
   };
   
   const userRef = db.collection("users").doc(userId);
