@@ -1,7 +1,7 @@
 import { Timestamp, FieldValue } from "firebase-admin/firestore";
 import db from "./config";
 import { v4 as uuidv4 } from 'uuid';
-import { Product, ProductData } from "./types";
+import { Product } from "./types";
 
 async function getProducts(userId: string, product_id?: string) {
   const userRef = db.collection("users").doc(userId);
@@ -34,10 +34,6 @@ async function createProduct(userId: string, productData: Omit<Product, 'created
     created_at: Timestamp.now(),
   };
 
-  const productDatabaseEntry: ProductData = {
-    user_id: userId,
-  };
-
   const productDict = data?.products || {};
   
   await userRef.update({
@@ -47,16 +43,33 @@ async function createProduct(userId: string, productData: Omit<Product, 'created
     },
   });
 
-  await productRef.set(productDatabaseEntry);
+  await productRef.set(newProduct);
 
   return { newProduct, product_id };
 }
 
-async function updateProduct(userId: string, product_id: string, updatedFields: Partial<Product>) {
-  const userRef = db.collection("users").doc(userId);
-  const doc = await userRef.get();
-  const data = doc.data();
-  const productDict = data?.products || {};
+async function updateProduct(product_id: string, updatedFields: Partial<Product>) {
+  
+  const productRef = db.collection("products").doc(product_id);
+  const productDoc = await productRef.get();
+  const productData = productDoc.data();
+
+  if (!productData) {
+    throw new Error(`Product with id ${product_id} not found`);
+  }
+
+  if (!productData.user_id) {
+    throw new Error(`Product with id ${product_id} has no associated user_id`);
+  }
+
+ 
+
+  const userRef = db.collection("users").doc(productData.user_id);
+  const userDoc = await userRef.get();
+  const userData = userDoc.data();
+  const productDict = userData?.products || {};
+
+  console.log(productDict);
 
   if (updatedFields.user_id) {
     throw new Error("User ID cannot be modified");
@@ -74,6 +87,8 @@ async function updateProduct(userId: string, product_id: string, updatedFields: 
   await userRef.update({
     [`products.${product_id}`]: updatedProduct
   });
+
+  await productRef.set(updatedProduct);
 
   return { ...updatedProduct, product_id };
 }

@@ -16,7 +16,7 @@ if to_test == "getTransaction":
     }
 elif to_test == "createTransaction":
     json_data = {
-        "userId": "user_id",
+        "userId": user_id,
         "transaction": {
             "from_user_id": user_id,
             "to_user_id": to_user_id,

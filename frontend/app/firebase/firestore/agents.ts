@@ -50,6 +50,7 @@ async function addAgent(userId: string, agent_name: string) {
   const apiRef = db.collection("apikeys").doc(apikey);
   const apiData: ApiData = {
     userId: userId,
+    agentId: agent_id,
   };
 
   await apiRef.set(apiData);

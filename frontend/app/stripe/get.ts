@@ -20,6 +20,11 @@ async function getCustomerPaymentMethod(customerId: string) {
         customer: customerId,
         type: "card",
     });
+
+    if (paymentMethods.data.length === 0) {
+        throw new Error("No payment methods found");
+    }
+
     return paymentMethods.data[0].id;
 }
 

@@ -1,12 +1,7 @@
 import stripe from "./config";
 
-async function processPayment(customerId: string, paymentMethodId: string, productId: string, priceId: string, accountId: string) {
+async function processPayment(customerId: string, paymentAmount: number, paymentMethodId: string, accountId: string, metadata: Record<string, string>) {
     try {
-        // Get the price to determine the correct amount
-        const price = await stripe.prices.retrieve(priceId, {
-            stripeAccount: accountId,
-        });
-
         const paymentMethod = await stripe.paymentMethods.create(
             {
                 payment_method: paymentMethodId,
@@ -20,19 +15,17 @@ async function processPayment(customerId: string, paymentMethodId: string, produ
         const paymentIntent = await stripe.paymentIntents.create(
             {
                 payment_method: paymentMethod.id,
-                amount: price.unit_amount, // Use the actual unit_amount from the price
+                amount: paymentAmount * 100,
                 currency: "usd",
                 confirm: true,
                 return_url: "http://localhost:3000/payment/success",
-                metadata: {
-                    productId: productId,
-                    priceId: priceId,
-                },
+                metadata: metadata,
             },
             {
                 stripeAccount: accountId,
             }
         );
+
 
         return { success: true, paymentIntent };
     } catch (error) {

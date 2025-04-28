@@ -18,10 +18,6 @@ type Product = {
     user_id: string;
     created_at: Timestamp;
 }
-  
-type ProductData = {
-    user_id: string;
-}
 
 type Agent = {
     apikey: string;
@@ -34,6 +30,7 @@ type Agent = {
   
 type ApiData = {
     userId: string;
+    agentId: string;
 }
 
 type Transaction = {
@@ -42,9 +39,9 @@ type Transaction = {
     to_user_id: string;
     from_agent_id: string;
     amount: number;
-    description: string;
     status: string;
     created_at: Timestamp;
+    metadata: Record<string, string>;
 }
 
-export type { User, Product, ProductData, Agent, ApiData, Transaction };
+export type { User, Product, Agent, ApiData, Transaction };

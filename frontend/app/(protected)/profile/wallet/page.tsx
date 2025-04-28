@@ -13,14 +13,18 @@ export default function SetupPage() {
     fetch("/api/user/getUser?userId=" + currentUser?.uid + "&params=stripe_id")
       .then((res) => res.json())
       .then((data) => {
-        console.log("data", data)
         fetch("/api/stripe/createSetupIntent", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ customer_id: data.stripe_id }),
+          body: JSON.stringify({ customerId: data.stripe_id }),
         })
         .then((res) => res.json())
-        .then((data) => setClientSecret(data.clientSecret));
+        .then((data) => {
+          setClientSecret(data.clientSecret);
+        })
+        .catch((err) => {
+          console.log("err", err)
+        });
       })
   }, []);
 
