@@ -49,8 +49,10 @@ export function SignUpForm({
             // No need to explicitly set currentUserAtom here
             // onAuthStateChanged in protected layout will handle it
 
+            console.log("user", user)
+            console.log("user.uid", user.uid)
             // Call API route to create Firestore user
-            await fetch("/api/user/createUser", {
+            const response = await fetch("/api/user/createUser", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -59,6 +61,8 @@ export function SignUpForm({
                     email
                 })
             })
+
+            console.log("response", response)
 
             toast.success("Account created successfully!")
             router.push(view === "vendor" ? "/vendor" : "/user")

@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getUser } from "@/app/firebase/firestore/user";
 
-export async function POST(request: NextRequest) {
-  const { userId, params } = await request.json();
+export async function GET(request: NextRequest) {
+  const { searchParams } = new URL(request.url);
+  const userId = searchParams.get('userId') || "";
+  const params = searchParams.get('params')?.split(',') || [];
 
   try {
     const user = await getUser(userId, params);

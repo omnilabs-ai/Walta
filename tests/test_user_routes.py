@@ -1,6 +1,6 @@
 import requests
 
-to_test = "getUser"  # Change this to test different routes: "createUser" or "getUser"
+to_test = "createUser"  # Change this to test different routes: "createUser" or "getUser"
 
 user_id = "0MVmaqHYJTg7AhyiYfk9lVwIvJr2"
 
@@ -14,7 +14,11 @@ elif to_test == "createUser":
     json_data = {
         "userId": user_id,
         "name": "Test User",
-        "email": "test@test.com"
+        "email": "test@test.com",
+        "prefill": {
+            "stripe_id": "test_id",
+            "stripe_vendor_id": "test_vendor_id"
+        }
     }
 
 response = requests.post(f"http://localhost:3000/api/user/{to_test}", json=json_data)

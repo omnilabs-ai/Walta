@@ -8,7 +8,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const { customer, customerId } = await createCustomer(name, email);
-    const { account, accountId } = await createAccount(name, email);
+    const { account, accountId } = await createAccount(email);
 
     const newUser = await createNewUser(userId, name, email, {
       stripe_id: customerId,
@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
     });
     
     return NextResponse.json({ newUser, account, accountId, customer }, { status: 200 });
-  } catch (error) {
-    return NextResponse.json({ message: "Error creating user" }, { status: 500 });
+  } catch (error: any) {
+    return NextResponse.json({ message: "Error creating user", error: error.message }, { status: 500 });
   }
 }
