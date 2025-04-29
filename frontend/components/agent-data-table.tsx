@@ -642,7 +642,7 @@ function AgentEditorDrawer({
 }: {
   item: z.infer<typeof schema>;
   triggerFromName?: boolean;
-  triggerRef?: React.MutableRefObject<() => void>;
+  triggerRef?: React.RefObject<() => void>;
 }) {
   const isMobile = useIsMobile()
   const currentUser = useAtomValue(currentUserAtom)

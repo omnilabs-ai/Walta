@@ -851,6 +851,7 @@ function CreateProductDialog() {
                     price: parseFloat(price) || 0,
                     type: type.trim(),
                     vendorName: vendorName.trim(),
+                    metadata: {}
                 }),
             });
 

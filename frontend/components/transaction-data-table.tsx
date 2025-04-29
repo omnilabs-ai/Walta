@@ -320,7 +320,7 @@ export function TransactionDataTable({ data }: TransactionDataTableProps) {
             header: "Status",
             cell: ({ row }) => (
                 <Badge
-                    className={`px-2 ${row.original.status.toLowerCase() === "completed"
+                    className={`px-2 ${row.original.status.toLowerCase() === "success"
                         ? "bg-green-200 text-green-800 hover:bg-green-200"
                         : row.original.status.toLowerCase() === "pending"
                             ? "bg-yellow-200 text-yellow-800 hover:bg-yellow-200"
