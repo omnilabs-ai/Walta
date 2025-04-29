@@ -4,7 +4,7 @@ import ssl
 from dotenv import load_dotenv
 from langchain_core.tools import tool
 from langchain_core.messages import HumanMessage, AIMessage
-from langchain_anthropic import ChatAnthropic
+from langchain_openai import ChatOpenAI
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.prebuilt import create_react_agent
 from colorama import init, Fore, Back, Style
@@ -26,9 +26,13 @@ os.environ['SSL_CERT_FILE'] = ''
 os.environ['REQUESTS_CA_BUNDLE'] = ''
 
 memory = MemorySaver()
-model = ChatAnthropic(
-    model_name="claude-3-7-sonnet-20250219",
-    anthropic_api_key=os.getenv("ANTHROPIC_API_KEY")
+# model = ChatAnthropic(
+#     model_name="claude-3-7-sonnet-20250219",
+#     anthropic_api_key=os.getenv("ANTHROPIC_API_KEY")
+# )
+model = ChatOpenAI(
+    model_name="gpt-4o-mini",
+    openai_api_key=os.getenv("OPENAI_API_KEY")
 )
 
 from tools import get_products, get_types, get_vendors, send_payment
@@ -41,6 +45,11 @@ def print_tool_output(tool_name, tool_output):
     print(f"\n{Fore.MAGENTA}{'='*50}")
     print(f"{Fore.MAGENTA}🛠️  Tool Output: {tool_name}")
     print(f"{Fore.MAGENTA}{'-'*50}")
+    # If tool output is too long, truncate it
+    if len(str(tool_output)) > 200:
+        truncated_output = str(tool_output)[:200] + "..."
+        tool_output = truncated_output
+
     print(f"{Fore.MAGENTA}Output: {json.dumps(tool_output, indent=2)}")
     print(f"{Fore.MAGENTA}{'='*50}\n")
 
@@ -86,31 +95,41 @@ def run_conversation():
             
         # Add user message to conversation history
         messages.append(HumanMessage(content=user_input))
+        messages.append(AIMessage(content="Processing..."))
         
         try:
             # Get agent's response
             for step in agent_executor.stream(
-                {"messages": messages, "type": "human"},
+                {"messages": messages},
                 config,
                 stream_mode="values",
             ):
-                print(step)
-                if step.type == "text":
-                    print_agent_message(step.text)
-                # Handle tool calls
-                if step.type == "tool_use":
-                    print_tool_call(step.id, step.name, step.input)
+                if isinstance(step, dict) and "messages" in step:
+                    last_step = step["messages"][-1]
 
-                if step.type == "tool_output":
-                    print_tool_output(step.name, step.output)
-                
-                # Print agent's response
-                if "messages" in step:
-                    messages.append(step.messages)
+                    print("\n\nlast_step", last_step)
+                    # Handle tool calls
+                    if last_step.additional_kwargs and 'tool_calls' in last_step.additional_kwargs:
+                        for tool_call in last_step.additional_kwargs['tool_calls']:
+                            print_tool_call(
+                                tool_call['id'],
+                                tool_call['function']['name'],
+                                json.loads(tool_call['function']['arguments'])
+                            )
+                    
+                    # Handle tool outputs
+                    elif isinstance(last_step, dict) and last_step.get('type') == "tool_output":
+                        print_tool_output(last_step['name'], last_step['output'])
+                    
+                    # Handle text responses
+                    elif last_step.content:
+                        print_agent_message(last_step.content)
+                        messages.append(last_step)
                 
         except Exception as e:
             print(f"{Fore.RED}\nAn error occurred: {str(e)}")
-            break
+            print(f"{Fore.RED}Please try again or type 'quit' to exit.")
+            continue
 
 if __name__ == "__main__":
     run_conversation()
