@@ -4,7 +4,8 @@ import { useRouter } from "next/navigation"
 import { signOut } from "firebase/auth"
 import { auth } from "@/app/firebase/auth"
 import { toast } from "sonner"
-
+import { dashboardViewAtom } from "@/app/atoms/settings"
+import { useAtomValue } from "jotai"
 import {
   IconCreditCard,
   IconDotsVertical,
@@ -43,6 +44,7 @@ export function NavUser({
     avatar: string
   }
 }) {
+  const view = useAtomValue(dashboardViewAtom)
   const { isMobile } = useSidebar()
   const router = useRouter()
   const handleSignOut = async () => {
@@ -104,10 +106,12 @@ export function NavUser({
                 <IconUserCircle />
                 Account
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => router.push("/profile/wallet")}>
-                <IconCreditCard />
-                Wallet
-              </DropdownMenuItem>
+              {view !== "vendor" && (
+                <DropdownMenuItem onClick={() => router.push("/user/profile/wallet")}>
+                  <IconCreditCard />
+                  Wallet
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem>
                 <IconNotification />
                 Notifications

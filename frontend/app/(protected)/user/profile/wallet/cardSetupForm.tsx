@@ -41,7 +41,7 @@ function SetupForm() {
     const { error } = await stripe.confirmSetup({
       elements,
       confirmParams: {
-        return_url: `${hostUrl}/dashboard`,
+        return_url: `${hostUrl}/user`,
       },
     });
     

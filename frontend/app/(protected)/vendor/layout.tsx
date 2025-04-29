@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { currentUserAtom } from "@/app/atoms/settings"
+import { currentUserAtom, dashboardViewAtom } from "@/app/atoms/settings"
 import { useAtomValue } from "jotai"
 
 export default function VendorLayout({
@@ -12,10 +12,17 @@ export default function VendorLayout({
 }) {
   const router = useRouter()
   const currentUser = useAtomValue(currentUserAtom)
+  const dashboardView = useAtomValue(dashboardViewAtom)
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    const checkOnboardingStatus = async () => {
+    const checkAccessAndOnboarding = async () => {
+      // Protect against users with wrong dashboard view
+      if (dashboardView !== "vendor") {
+        router.push("/user")
+        return
+      }
+
       if (!currentUser) {
         router.push("/login")
         return
@@ -42,7 +49,6 @@ export default function VendorLayout({
           const linkResponse = await fetch(`/api/stripe/createAccountLink?accountId=${accountId}`).then(res => res.json())
           console.log("linkResponse", linkResponse)
 
-          // Redirect to Stripe onboarding
           if (linkResponse.url) {
             router.push(linkResponse.url)
             return
@@ -56,8 +62,8 @@ export default function VendorLayout({
       }
     }
 
-    checkOnboardingStatus()
-  }, [currentUser, router])
+    checkAccessAndOnboarding()
+  }, [currentUser, dashboardView, router])
 
   if (isLoading) {
     return (
