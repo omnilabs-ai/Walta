@@ -8,6 +8,7 @@ export async function GET(req: NextRequest) {
     const type = searchParams.get('type');
     const price = searchParams.get('price');
     const vendorName = searchParams.get('vendorName');
+    const metadata = searchParams.get('metadata');
 
     try {
         const products = await queryProductData({
@@ -15,8 +16,9 @@ export async function GET(req: NextRequest) {
             name,
             type,
             price: price ? Number(price) : undefined,
-            vendorName
-    });
+            vendorName,
+            metadata: metadata ? JSON.parse(metadata) : undefined,
+        });
     
         return NextResponse.json({ products }, { status: 200 });
     } catch (error: any) {

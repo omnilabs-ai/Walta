@@ -19,6 +19,7 @@ type Product = {
     vendorName: string;
     user_id: string;
     created_at: Timestamp;
+    metadata: Record<string, string>;
 }
 
 type Agent = {

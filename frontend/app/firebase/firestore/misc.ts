@@ -22,6 +22,7 @@ interface ProductFilters {
     type?: string | null;
     price?: number;
     vendorName?: string | null;
+    metadata?: Record<string, string> | null;
 }
 
 async function queryProductData(filters: ProductFilters = {}) {
@@ -35,6 +36,14 @@ async function queryProductData(filters: ProductFilters = {}) {
             if (filters.type && data.type !== filters.type) return false;
             if (filters.price && data.price !== filters.price) return false;
             if (filters.vendorName && data.vendorName !== filters.vendorName) return false;
+            if (filters.metadata && data.metadata) {
+                // Check if all metadata key-value pairs match
+                for (const [key, value] of Object.entries(filters.metadata)) {
+                    if (!data.metadata || data.metadata[key] !== value) {
+                        return false;
+                    }
+                }
+            }
             return true;
         })
         .map(doc => ({
