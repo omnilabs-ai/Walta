@@ -2,6 +2,7 @@ import requests
 from typing import Optional, Dict, Any, List
 import os
 from dotenv import load_dotenv
+import json
 
 class WaltaApi:
     def __init__(self, host_url: Optional[str] = None, agent_key: Optional[str] = None):
@@ -44,7 +45,8 @@ class WaltaApi:
         name: Optional[str] = None,
         type: Optional[str] = None,
         price: Optional[float] = None,
-        vendor_name: Optional[str] = None
+        vendor_name: Optional[str] = None,
+        metadata: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         """Get a list of products based on optional filters.
         
@@ -54,7 +56,7 @@ class WaltaApi:
             type (Optional[str]): Filter by product type
             price (Optional[float]): Filter by product price
             vendor_name (Optional[str]): Filter by vendor name
-            
+            metadata (Optional[Dict[str, Any]]): Filter by metadata
         Returns:
             Dict[str, Any]: A dictionary containing the list of products matching the filters
         """
@@ -63,7 +65,8 @@ class WaltaApi:
             'name': name,
             'type': type,
             'price': str(price) if price is not None else None,
-            'vendorName': vendor_name
+            'vendorName': vendor_name,
+            'metadata': json.dumps(metadata) if metadata is not None else None
         }
         # Remove None values from filters
         filters = {k: v for k, v in filters.items() if v is not None}
@@ -89,11 +92,12 @@ class WaltaApi:
         """
         payload = {
             'productId': product_id,
-            'quantity': quantity
+            'quantity': quantity,
+            'metadata': {}
         }
         
-        if metadata:
-            payload['metadata'] = metadata
+        # if metadata:
+        #     payload['metadata'] = json.dumps(metadata)
             
         response = requests.post(
             f"{self.host_url}/sendPayment",
