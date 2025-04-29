@@ -17,7 +17,7 @@ def get_vendors() -> List[str]:
     Returns:
         List[str]: A list of vendor names that can be used with get_products(vendorName=...)
     """
-    return walta_api.get_vendors()
+    return {"name": "get_vendors", "output": walta_api.get_vendors()["vendors"], "type": "tool_output"}
 
 @tool
 def get_types() -> List[str]:
@@ -26,7 +26,7 @@ def get_types() -> List[str]:
     Returns:
         List[str]: A list of product types that can be used with get_products(type=...)
     """
-    return walta_api.get_types()
+    return {"name": "get_types", "output": walta_api.get_types()["types"], "type": "tool_output"}
 
 @tool
 def get_products(
@@ -48,13 +48,17 @@ def get_products(
     Returns:
         Dict[str, Any]: A dictionary containing the list of products matching the filters
     """
-    return walta_api.get_products(
-        product_id=productId,
-        name=name,
-        type=type,
-        price=price,
-        vendor_name=vendorName
-    )
+    return { 
+        "name": "get_products",
+        "output": walta_api.get_products(
+            product_id=productId,
+            name=name,
+            type=type,
+            price=price,
+            vendor_name=vendorName
+        ),
+        "type": "tool_output"
+    }
 
 @tool
 def send_payment(productId: str, quantity: int, metadata: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
@@ -68,8 +72,12 @@ def send_payment(productId: str, quantity: int, metadata: Optional[Dict[str, Any
     Returns:
         Dict[str, Any]: The payment intent response containing payment details
     """
-    return walta_api.send_payment(
-        product_id=productId,
-        quantity=quantity,
-        metadata=metadata
-    )
+    return {
+        "name": "send_payment",
+        "output": walta_api.send_payment(
+            product_id=productId,
+            quantity=quantity,
+            metadata=metadata
+        ),
+        "type": "tool_output"
+    }
