@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 import json
 
 class WaltaApi:
-    def __init__(self, host_url: Optional[str] = None, agent_key: Optional[str] = None):
+    def __init__(self, agent_key: Optional[str] = None):
         """Initialize the Walta API client.
         
         Args:
@@ -13,7 +13,7 @@ class WaltaApi:
             api_key (Optional[str]): The API key for authentication. If not provided, will be loaded from environment.
         """
         load_dotenv()
-        self.host_url = host_url or os.getenv("HOST_URL")
+        self.host_url = "http://localhost:3000/api/v1"
         self.agent_key = agent_key or os.getenv("WALTA_AGENT_KEY")
         
         if not self.host_url:

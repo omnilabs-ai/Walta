@@ -1,6 +1,5 @@
 # Import necessary packages
 import os
-import ssl
 from dotenv import load_dotenv
 from langchain_core.messages import HumanMessage, AIMessage
 from langchain_openai import ChatOpenAI
@@ -9,17 +8,8 @@ from langgraph.prebuilt import create_react_agent
 import json
 from prompt import system_prompt
 from agent_utils import *
-# Load environment variables
+
 load_dotenv()
-
-# Configure SSL
-ssl_context = ssl.create_default_context()
-ssl_context.check_hostname = False
-ssl_context.verify_mode = ssl.CERT_NONE
-
-# Set environment variables for SSL
-os.environ['SSL_CERT_FILE'] = ''
-os.environ['REQUESTS_CA_BUNDLE'] = ''
 
 memory = MemorySaver()
 model = ChatOpenAI(

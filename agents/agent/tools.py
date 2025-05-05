@@ -5,10 +5,8 @@ from dotenv import load_dotenv
 import os
 
 load_dotenv()
-HOST_URL = os.getenv("HOST_URL")
 WALTA_AGENT_KEY = os.getenv("WALTA_AGENT_KEY")
-
-walta_api = WaltaApi(host_url=HOST_URL, agent_key=WALTA_AGENT_KEY)
+walta_api = WaltaApi(agent_key=WALTA_AGENT_KEY)
 
 @tool
 def get_vendors() -> List[str]:

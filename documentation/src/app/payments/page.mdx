@@ -1,0 +1,174 @@
+export const metadata = {
+  title: 'Payments',
+  description:
+    'Learn how to process payments through WALTA\'s autonomous finance infrastructure, including payment processing, transaction tracking, and metadata management.',
+}
+
+# Payments
+
+WALTA's payment system enables autonomous agents to process secure payments between customers and vendors. This page covers how to initiate payments, handle transactions, and manage payment metadata. {{ className: 'lead' }}
+
+## The payment model
+
+The payment model contains all the information about transactions processed through the WALTA ecosystem, including payment details, transaction status, and associated metadata.
+
+### Properties
+
+<Properties>
+  <Property name="paymentIntent" type="object">
+    The Stripe payment intent object containing payment details.
+  </Property>
+  <Property name="amount" type="number">
+    The total payment amount.
+  </Property>
+  <Property name="status" type="string">
+    The status of the transaction (e.g., "success").
+  </Property>
+  <Property name="metadata" type="object">
+    Additional transaction information including product details.
+  </Property>
+  <Property name="from_user_id" type="string">
+    The ID of the user making the payment.
+  </Property>
+  <Property name="to_user_id" type="string">
+    The ID of the vendor receiving the payment.
+  </Property>
+  <Property name="from_agent_id" type="string">
+    The ID of the agent initiating the payment.
+  </Property>
+</Properties>
+
+---
+
+## Send Payment {{ tag: 'POST', label: '/v1/sendPayment' }}
+
+<Row>
+  <Col>
+
+    This endpoint allows you to process a payment for a product. The system will automatically handle payment processing through Stripe and record the transaction.
+
+    ### Required headers
+
+    <Properties>
+      <Property name="x-api-key" type="string">
+        Your WALTA API key for authentication.
+      </Property>
+    </Properties>
+
+    ### Required attributes
+
+    <Properties>
+      <Property name="productId" type="string">
+        The ID of the product being purchased.
+      </Property>
+      <Property name="quantity" type="integer">
+        The quantity of the product being purchased.
+      </Property>
+    </Properties>
+
+    ### Optional attributes
+
+    <Properties>
+      <Property name="metadata" type="object">
+        Additional metadata to include with the payment.
+      </Property>
+    </Properties>
+
+  </Col>
+  <Col sticky>
+
+    <CodeGroup title="Request" tag="POST" label="/v1/sendPayment">
+
+    ```bash {{ title: 'cURL' }}
+    curl -X POST https://api.walta.ai/v1/sendPayment \
+      -H "x-api-key: {api_key}" \
+      -H "Content-Type: application/json" \
+      -d '{
+        "productId": "prod_123",
+        "quantity": 2,
+        "metadata": {
+          "order_id": "order_456"
+        }
+      }'
+    ```
+
+    ```python
+    from walta_api import WaltaApi
+
+    api = WaltaApi(api_key="your_api_key")
+    
+    payment = api.send_payment(
+        product_id="prod_123",
+        quantity=2,
+        metadata={
+            "order_id": "order_456"
+        }
+    )
+    ```
+
+    </CodeGroup>
+
+    ```json {{ title: 'Response' }}
+    {
+      "paymentIntent": {
+        "id": "pi_123456789",
+        "amount": 200,
+        "currency": "usd",
+        "status": "succeeded",
+        "metadata": {
+          "productId": "prod_123",
+          "productName": "Premium Service",
+          "productDescription": "Premium service package",
+          "productPrice": 100,
+          "productQuantity": 2,
+          "order_id": "order_456"
+        }
+      }
+    }
+    ```
+
+  </Col>
+</Row>
+
+## Best Practices
+
+1. **Payment Processing**
+   - Always validate product availability before initiating payment
+   - Handle payment failures gracefully
+   - Implement proper error handling
+   - Use appropriate metadata for transaction tracking
+
+2. **Security**
+   - Keep your API keys secure
+   - Never expose sensitive payment information
+   - Validate all input data
+   - Use HTTPS for all API calls
+
+3. **Transaction Management**
+   - Track transaction status
+   - Maintain proper records
+   - Implement reconciliation processes
+   - Monitor for failed transactions
+
+4. **Error Handling**
+   - Handle API errors appropriately
+   - Implement retry logic for failed payments
+   - Log payment failures
+   - Provide clear error messages
+
+## Common Errors
+
+<Properties>
+  <Property name="401 Unauthorized" type="string">
+    API key is missing or invalid.
+  </Property>
+  <Property name="400 Bad Request" type="string">
+    Required parameters are missing or invalid.
+  </Property>
+  <Property name="404 Not Found" type="string">
+    Product or vendor not found.
+  </Property>
+  <Property name="500 Internal Server Error" type="string">
+    Payment processing failed.
+  </Property>
+</Properties>
