@@ -28,10 +28,10 @@ interface Resource {
 
 const resources: Array<Resource> = [
   {
-    href: '/contacts',
-    name: 'Contacts',
+    href: '/agents',
+    name: 'AI Agents',
     description:
-      'Learn about the contact model and how to create, retrieve, update, delete, and list contacts.',
+      'Learn how to build and deploy autonomous AI agents that can handle financial transactions, manage payments, and interact with our API.',
     icon: UserIcon,
     pattern: {
       y: 16,
@@ -42,10 +42,10 @@ const resources: Array<Resource> = [
     },
   },
   {
-    href: '/conversations',
-    name: 'Conversations',
+    href: '/api',
+    name: 'API Reference',
     description:
-      'Learn about the conversation model and how to create, retrieve, update, delete, and list conversations.',
+      'Explore our comprehensive API documentation to integrate WALTA into your applications. Learn about product management, payments, and vendor interactions.',
     icon: ChatBubbleIcon,
     pattern: {
       y: -6,
@@ -56,10 +56,10 @@ const resources: Array<Resource> = [
     },
   },
   {
-    href: '/messages',
-    name: 'Messages',
+    href: '/payments',
+    name: 'Payments',
     description:
-      'Learn about the message model and how to create, retrieve, update, delete, and list messages.',
+      'Understand our payment infrastructure and how to process transactions securely through our autonomous finance system.',
     icon: EnvelopeIcon,
     pattern: {
       y: 32,
@@ -70,10 +70,10 @@ const resources: Array<Resource> = [
     },
   },
   {
-    href: '/groups',
-    name: 'Groups',
+    href: '/vendors',
+    name: 'Vendor Integration',
     description:
-      'Learn about the group model and how to create, retrieve, update, delete, and list groups.',
+      'Learn how to integrate your services as a vendor into the WALTA ecosystem and make your products available to AI agents.',
     icon: UsersIcon,
     pattern: {
       y: 22,

@@ -5,10 +5,8 @@ from dotenv import load_dotenv
 import os
 
 load_dotenv()
-HOST_URL = os.getenv("HOST_URL")
 WALTA_AGENT_KEY = os.getenv("WALTA_AGENT_KEY")
-
-walta_api = WaltaApi(host_url=HOST_URL, agent_key=WALTA_AGENT_KEY)
+walta_api = WaltaApi(agent_key=WALTA_AGENT_KEY)
 
 @tool
 def get_vendors() -> List[str]:
@@ -34,7 +32,8 @@ def get_products(
     name: Optional[str] = None,
     type: Optional[str] = None,
     price: Optional[float] = None,
-    vendorName: Optional[str] = None
+    vendorName: Optional[str] = None,
+    metadata: Optional[Dict[str, Any]] = None
 ) -> Dict[str, Any]:
     """Get a list of products based on optional filters.
     
@@ -44,7 +43,8 @@ def get_products(
         type (Optional[str]): Filter by product type
         price (Optional[float]): Filter by product price
         vendorName (Optional[str]): Filter by vendor name
-        
+        metadata (Optional[Dict[str, Any]]): Filter by metadata
+
     Returns:
         Dict[str, Any]: A dictionary containing the list of products matching the filters
     """
@@ -55,7 +55,8 @@ def get_products(
             name=name,
             type=type,
             price=price,
-            vendor_name=vendorName
+            vendor_name=vendorName,
+            metadata=metadata
         ),
         "type": "tool_output"
     }
@@ -81,3 +82,4 @@ def send_payment(productId: str, quantity: int, metadata: Optional[Dict[str, Any
         ),
         "type": "tool_output"
     }
+

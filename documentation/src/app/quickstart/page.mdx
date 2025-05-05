@@ -1,98 +1,234 @@
 export const metadata = {
   title: 'Quickstart',
   description:
-    'This guide will get you all set up and ready to use the Protocol API. We’ll cover how to get started an API client and how to make your first API request.',
+    'Get started with WALTA\'s autonomous finance infrastructure. Learn how to set up your environment, create AI agents, and process your first payment.',
 }
 
 # Quickstart
 
-This guide will get you all set up and ready to use the Protocol API. We'll cover how to get started using one of our API clients and how to make your first API request. We'll also look at where to go next to find all the information you need to take full advantage of our powerful REST API. {{ className: 'lead' }}
+This guide will help you get started with WALTA's autonomous finance infrastructure. We'll cover how to set up your environment, create your first AI agent, and process payments through our platform. {{ className: 'lead' }}
 
 <Note>
-  Before you can make requests to the Protocol API, you will need to grab your
-  API key from your dashboard. You find it under [Settings &raquo; API](#).
+  Before you can use WALTA's services, you'll need to:
+  1. Create an account in the [developer portal](#)
+  2. Generate your API key
+  3. Set up your Stripe account for payment processing
 </Note>
 
-## Choose your client
+## Set up your environment
 
-Before making your first API request, you need to pick which API client you will use. In addition to good ol' cURL HTTP requests, Protocol offers clients for JavaScript, Python, and PHP. In the following example, you can see how to install each client.
+First, let's set up your development environment. WALTA provides SDKs for Python and JavaScript, with more languages coming soon.
 
 <CodeGroup>
 
-```bash {{ title: 'cURL' }}
-# cURL is most likely already installed on your machine
-curl --version
+```bash {{ title: 'Python' }}
+# Install the WALTA Python SDK
+pip install walta-api
+
+# Install additional dependencies for AI agents
+pip install langchain openai
 ```
 
-```bash {{ language: 'js' }}
-# Install the Protocol JavaScript SDK
-npm install @example/protocol-api --save
-```
+```bash {{ title: 'JavaScript' }}
+# Install the WALTA JavaScript SDK
+npm install @walta/api
 
-```bash {{ language: 'python' }}
-# Install the Protocol Python SDK
-pip install protocol_api
-```
-
-```bash {{ language: 'php' }}
-# Install the Protocol PHP SDK
-composer require protocol/sdk
+# Install additional dependencies for AI agents
+npm install langchain openai
 ```
 
 </CodeGroup>
 
-<div className="not-prose">
-  <Button href="/sdks" variant="text" arrow="right">
-    <>Check out our list of first-party SDKs</>
-  </Button>
-</div>
+## Initialize your API client
 
-## Making your first API request
+Once you have the SDK installed, you'll need to initialize your API client with your API key.
 
-After picking your preferred client, you are ready to make your first call to the Protocol API. Below, you can see how to send a GET request to the Conversations endpoint to get a list of all your conversations. In the cURL example, results are limited to ten conversations, the default page length for each client.
-
-<CodeGroup tag="GET" label="/v1/conversations">
-
-```bash {{ title: 'cURL' }}
-curl -G https://api.protocol.chat/v1/conversations \
-  -H "Authorization: Bearer {token}" \
-  -d limit=10
-```
-
-```js
-import ApiClient from '@example/protocol-api'
-
-const client = new ApiClient(token)
-
-await client.conversations.list()
-```
+<CodeGroup>
 
 ```python
-from protocol_api import ApiClient
+from walta_api import WaltaApi
 
-client = ApiClient(token)
-
-client.conversations.list()
+# Initialize the API client
+api = WaltaApi(api_key="your_api_key")
 ```
 
-```php
-$client = new \Protocol\ApiClient($token);
+```javascript
+import { WaltaApi } from '@walta/api';
 
-$client->conversations->list();
+// Initialize the API client
+const api = new WaltaApi({
+  apiKey: 'your_api_key'
+});
 ```
 
 </CodeGroup>
 
-<div className="not-prose">
-  <Button href="/conversations" variant="text" arrow="right">
-    <>Read the docs for the Conversations endpoint</>
-  </Button>
-</div>
+## Create your first AI agent
+
+Now, let's create a simple AI agent that can search for products and process payments.
+
+<CodeGroup>
+
+```python
+from langchain.agents import Tool
+from walta_api import WaltaApi
+
+# Initialize the API client
+api = WaltaApi(api_key="your_api_key")
+
+# Create tools for the agent
+tools = [
+    Tool(
+        name="search_products",
+        func=api.get_products,
+        description="Search for products by various criteria"
+    ),
+    Tool(
+        name="process_payment",
+        func=api.send_payment,
+        description="Process a payment for a product"
+    )
+]
+
+# Create your agent using LangChain
+# (Implementation details will depend on your specific agent requirements)
+```
+
+```javascript
+import { WaltaApi } from '@walta/api';
+import { Tool } from 'langchain/tools';
+
+// Initialize the API client
+const api = new WaltaApi({
+  apiKey: 'your_api_key'
+});
+
+// Create tools for the agent
+const tools = [
+  new Tool({
+    name: 'search_products',
+    func: api.getProducts,
+    description: 'Search for products by various criteria'
+  }),
+  new Tool({
+    name: 'process_payment',
+    func: api.sendPayment,
+    description: 'Process a payment for a product'
+  })
+];
+
+// Create your agent using LangChain
+// (Implementation details will depend on your specific agent requirements)
+```
+
+</CodeGroup>
+
+## Make your first API request
+
+Let's search for products and process a payment using your agent.
+
+<CodeGroup>
+
+```python
+# Search for products
+products = api.get_products(
+    type="service",
+    price=100,
+    vendor_name="ExampleVendor"
+)
+
+# Process a payment
+payment = api.send_payment(
+    product_id="prod_123",
+    quantity=1,
+    metadata={
+        "order_id": "order_456"
+    }
+)
+```
+
+```javascript
+// Search for products
+const products = await api.getProducts({
+  type: 'service',
+  price: 100,
+  vendorName: 'ExampleVendor'
+});
+
+// Process a payment
+const payment = await api.sendPayment({
+  productId: 'prod_123',
+  quantity: 1,
+  metadata: {
+    order_id: 'order_456'
+  }
+});
+```
+
+</CodeGroup>
+
+## Test your setup
+
+To verify everything is working correctly, try this simple test:
+
+<CodeGroup>
+
+```python
+# Test product search
+products = api.get_products()
+print(f"Found {len(products['products'])} products")
+
+# Test vendor list
+vendors = api.get_vendors()
+print(f"Found {len(vendors['vendors'])} vendors")
+
+# Test types
+types = api.get_types()
+print(f"Found {len(types['types'])} product types")
+```
+
+```javascript
+// Test product search
+const products = await api.getProducts();
+console.log(`Found ${products.products.length} products`);
+
+// Test vendor list
+const vendors = await api.getVendors();
+console.log(`Found ${vendors.vendors.length} vendors`);
+
+// Test types
+const types = await api.getTypes();
+console.log(`Found ${types.types.length} product types`);
+```
+
+</CodeGroup>
 
 ## What's next?
 
-Great, you're now set up with an API client and have made your first request to the API. Here are a few links that might be handy as you venture further into the Protocol API:
+Congratulations! You've set up your WALTA environment and made your first API calls. Here are some next steps to explore:
 
-- [Grab your API key from the Protocol dashboard](#)
-- [Check out the Conversations endpoint](/conversations)
-- [Learn about the different error messages in Protocol](/errors)
+1. **Build Autonomous Agents**
+   - Learn how to create more sophisticated AI agents
+   - Implement custom tools and workflows
+   - Handle complex payment scenarios
+
+2. **Explore the API**
+   - [Product Management](/products)
+   - [Payment Processing](/payments)
+   - [Vendor Integration](/vendors)
+
+3. **Advanced Topics**
+   - [Security Best Practices](/security)
+   - [Error Handling](/errors)
+   - [Performance Optimization](/performance)
+
+4. **Join the Community**
+   - [Developer Forum](#)
+   - [GitHub Repository](#)
+   - [Discord Community](#)
+
+<div className="not-prose">
+  <Button href="/products" variant="text" arrow="right">
+    <>Learn about product management</>
+  </Button>
+</div>

@@ -2,13 +2,13 @@ import requests
 import random
 from typing import List, Dict, Any
 
-user_id = "Ll0KLLTEVyXaiZCNaWWQfafQJkf2"
+user_id = "5fiuybMOdacdTh2PW0neGZ9wln72"
 vendor_name = "Booking.com"
 
 def generate_hotels() -> List[Dict[str, Any]]:
-    hotel_chains = ["Marriott", "Hilton", "Hyatt"]
-    locations = ["New York", "San Francisco", "Los Angeles"]
-    room_types = ["Standard", "Deluxe", "Executive"]
+    hotel_chains = ["Marriott", "Hilton"]
+    locations = ["San Francisco", "Los Angeles"]
+    room_types = ["Standard", "Deluxe"]
     
     products = []
     for chain in hotel_chains:
@@ -20,7 +20,7 @@ def generate_hotels() -> List[Dict[str, Any]]:
                     "name": f"{chain} {location} - {room_type}",
                     "description": f"Experience luxury at {chain} {location}. This {room_type.lower()} room offers premium amenities and services.",
                     "price": base_price,
-                    "type": "hotel",
+                    "type": chain,
                     "vendorName": vendor_name,
                     "metadata": {
                         "chain": chain,
@@ -106,8 +106,7 @@ def addVendorProducts(products_list: List[Dict[str, Any]]) -> None:
 if __name__ == "__main__":
     # Generate all products
     all_products = (
-        generate_hotels() +
-        generate_apartments()
+        generate_hotels()
         # generate_vacation_rentals()
     )
 

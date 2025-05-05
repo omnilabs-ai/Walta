@@ -1,0 +1,221 @@
+export const metadata = {
+  title: 'Products',
+  description:
+    'Learn how to interact with WALTA\'s product catalog, including searching for products, retrieving product types, and managing vendor information.',
+}
+
+# Products
+
+WALTA's product system enables autonomous agents to discover and interact with products across multiple vendors. This page covers the endpoints you can use to search for products, retrieve product types, and access vendor information. {{ className: 'lead' }}
+
+## The product model
+
+The product model contains all the information about products available in the WALTA ecosystem, including their types, prices, and vendor information.
+
+### Properties
+
+<Properties>
+  <Property name="id" type="string">
+    Unique identifier for the product.
+  </Property>
+  <Property name="name" type="string">
+    The name of the product.
+  </Property>
+  <Property name="type" type="string">
+    The category or type of the product.
+  </Property>
+  <Property name="price" type="number">
+    The price of the product.
+  </Property>
+  <Property name="vendorName" type="string">
+    The name of the vendor offering the product.
+  </Property>
+  <Property name="metadata" type="object">
+    Additional product information in key-value pairs.
+  </Property>
+</Properties>
+
+---
+
+## Get Products {{ tag: 'GET', label: '/v1/products/getProducts' }}
+
+<Row>
+  <Col>
+
+    This endpoint allows you to search for products using various filters. All parameters are optional, and you can combine them to narrow down your search.
+
+    ### Optional attributes
+
+    <Properties>
+      <Property name="productId" type="string">
+        Filter by specific product ID.
+      </Property>
+      <Property name="name" type="string">
+        Filter by product name.
+      </Property>
+      <Property name="type" type="string">
+        Filter by product type.
+      </Property>
+      <Property name="price" type="number">
+        Filter by product price.
+      </Property>
+      <Property name="vendorName" type="string">
+        Filter by vendor name.
+      </Property>
+      <Property name="metadata" type="object">
+        Filter by metadata key-value pairs.
+      </Property>
+    </Properties>
+
+  </Col>
+  <Col sticky>
+
+    <CodeGroup title="Request" tag="GET" label="/v1/products/getProducts">
+
+    ```bash {{ title: 'cURL' }}
+    curl -G https://api.walta.ai/v1/products/getProducts \
+      -H "x-api-key: {api_key}" \
+      -d type="service" \
+      -d price="100" \
+      -d vendorName="ExampleVendor"
+    ```
+
+    ```python
+    from walta_api import WaltaApi
+
+    api = WaltaApi(api_key="your_api_key")
+    
+    products = api.get_products(
+        type="service",
+        price=100,
+        vendor_name="ExampleVendor"
+    )
+    ```
+
+    </CodeGroup>
+
+    ```json {{ title: 'Response' }}
+    {
+      "products": [
+        {
+          "id": "prod_123",
+          "name": "Premium Service",
+          "type": "service",
+          "price": 100,
+          "vendorName": "ExampleVendor",
+          "metadata": {
+            "description": "Premium service package",
+            "duration": "1 month"
+          }
+        }
+      ]
+    }
+    ```
+
+  </Col>
+</Row>
+
+---
+
+## Get Product Types {{ tag: 'GET', label: '/v1/products/getTypes' }}
+
+<Row>
+  <Col>
+
+    This endpoint returns a list of all available product types in the WALTA ecosystem. This is useful for filtering products or understanding the available categories.
+
+  </Col>
+  <Col sticky>
+
+    <CodeGroup title="Request" tag="GET" label="/v1/products/getTypes">
+
+    ```bash {{ title: 'cURL' }}
+    curl https://api.walta.ai/v1/products/getTypes \
+      -H "x-api-key: {api_key}"
+    ```
+
+    ```python
+    from walta_api import WaltaApi
+
+    api = WaltaApi(api_key="your_api_key")
+    types = api.get_types()
+    ```
+
+    </CodeGroup>
+
+    ```json {{ title: 'Response' }}
+    {
+      "types": [
+        "service",
+        "physical",
+        "digital",
+        "subscription"
+      ]
+    }
+    ```
+
+  </Col>
+</Row>
+
+---
+
+## Get Vendors {{ tag: 'GET', label: '/v1/products/getVendors' }}
+
+<Row>
+  <Col>
+
+    This endpoint returns a list of all vendors in the WALTA ecosystem. This is useful for filtering products or understanding which vendors are available.
+
+  </Col>
+  <Col sticky>
+
+    <CodeGroup title="Request" tag="GET" label="/v1/products/getVendors">
+
+    ```bash {{ title: 'cURL' }}
+    curl https://api.walta.ai/v1/products/getVendors \
+      -H "x-api-key: {api_key}"
+    ```
+
+    ```python
+    from walta_api import WaltaApi
+
+    api = WaltaApi(api_key="your_api_key")
+    vendors = api.get_vendors()
+    ```
+
+    </CodeGroup>
+
+    ```json {{ title: 'Response' }}
+    {
+      "vendors": [
+        "ExampleVendor",
+        "PremiumServices",
+        "DigitalGoodsCo"
+      ]
+    }
+    ```
+
+  </Col>
+</Row>
+
+## Best Practices
+
+1. **Product Search**
+   - Use multiple filters to narrow down search results
+   - Consider using metadata for advanced filtering
+   - Cache frequently accessed product information
+
+2. **Type and Vendor Management**
+   - Use the types and vendors endpoints to build dynamic filters
+   - Keep track of available types and vendors for better user experience
+   - Consider caching this information to reduce API calls
+
+3. **Error Handling**
+   - Always handle API errors gracefully
+   - Implement retry logic for failed requests
+   - Validate responses before processing
+
+4. **Performance**
+   - Use appropriate filters to minimize response size
+   - Implement pagination if dealing with large product catalogs
+   - Cache frequently accessed data
