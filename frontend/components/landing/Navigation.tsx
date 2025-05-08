@@ -1,0 +1,37 @@
+"use client";
+
+import Link from 'next/link';
+import { Button } from "@/components/ui/button";
+import useNextRouterAdapter from "./useNextRouterAdapter";
+
+const Navigation = () => {
+  const navigate = useNextRouterAdapter();
+
+  return (
+    <nav className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-slate-200">
+      <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+        <div className="flex items-center space-x-3">
+          <img src="/logo.svg" alt="Walta" className="h-14 w-auto" />
+        </div>
+        
+        <div className="hidden md:flex items-center space-x-8">
+          <a href="#product" className="text-slate-800 hover:text-blue-900 text-lg font-bold">Product</a>
+          <a href="#solutions" className="text-slate-800 hover:text-blue-900 text-lg font-bold">Solutions</a>
+          <a href="#docs" className="text-slate-800 hover:text-blue-900 text-lg font-bold">Documentation</a>
+          <a href="#contact" className="text-slate-800 hover:text-blue-900 text-lg font-bold">Contact Us</a>
+        </div>
+        
+        <div className="flex items-center">
+          <Button 
+            asChild
+            className="bg-[#192E5B] text-white hover:bg-[#192E5B]/90 text-lg py-2 px-6 transform hover:scale-105 transition-all duration-150 ease-in-out"
+          >
+            <Link href="/signup">Get Started</Link>
+          </Button>
+        </div>
+      </div>
+    </nav>
+  );
+};
+
+export default Navigation;
