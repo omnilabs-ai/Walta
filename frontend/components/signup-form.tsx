@@ -1,13 +1,14 @@
 // components/sign-up-form.tsx
 "use client"
-import { useState } from 'react'
-import { useRouter } from "next/navigation"
+import { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
     Card,
     CardContent,
     CardDescription,
+    CardFooter,
     CardHeader,
     CardTitle,
 } from "@/components/ui/card"
@@ -17,7 +18,7 @@ import { toast } from "sonner"
 import { createUserWithEmailAndPassword } from "firebase/auth"
 import { auth } from "@/app/firebase/auth"
 import { useAtom } from "jotai"
-import { dashboardViewAtom } from "@/app/atoms/settings"
+import { dashboardViewAtom, type DashboardView } from "@/app/atoms/settings"
 import { ViewToggle } from './view-toggle'
 
 export function SignUpForm({
@@ -25,12 +26,23 @@ export function SignUpForm({
     ...props
 }: React.ComponentProps<"div">) {
     const router = useRouter()
+    const searchParams = useSearchParams()
     const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
     const [confirmPassword, setConfirmPassword] = useState("")
     const [name, setName] = useState("")
     const [loading, setLoading] = useState(false)
-    const [view] = useAtom(dashboardViewAtom)
+    const [view, setView] = useAtom(dashboardViewAtom)
+    const [isDevelopment] = useState(process.env.NODE_ENV === "development")
+
+    useEffect(() => {
+        const initialView = searchParams.get('view')
+        if (initialView === 'developer' || initialView === 'vendor') {
+            setView(initialView as DashboardView)
+        }
+        // Run only once on mount
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [searchParams, setView]);
 
     const handleSignUp = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -43,14 +55,16 @@ export function SignUpForm({
         try {
             setLoading(true)
 
+            // For development - bypass authentication when using development mode
+            if (isDevelopment && email === "dev@example.com" && password === "devmode") {
+                toast.success("Development signup successful!")
+                router.push(view === "vendor" ? "/vendor" : "/user")
+                return
+            }
+
             const userCredential = await createUserWithEmailAndPassword(auth, email, password)
             const user = userCredential.user
 
-            // No need to explicitly set currentUserAtom here
-            // onAuthStateChanged in protected layout will handle it
-
-            console.log("user", user)
-            console.log("user.uid", user.uid)
             // Call API route to create Firestore user
             const response = await fetch("/api/user/createUser", {
                 method: "POST",
@@ -61,8 +75,6 @@ export function SignUpForm({
                     email
                 })
             })
-
-            console.log("response", response)
 
             toast.success("Account created successfully!")
             router.push(view === "vendor" ? "/vendor" : "/user")
@@ -80,31 +92,26 @@ export function SignUpForm({
                 <CardHeader className="text-center">
                     <CardTitle className="text-xl">Create an account</CardTitle>
                     <CardDescription>
-                        Sign up with your Apple or Google account
+                        {isDevelopment 
+                            ? "Development mode enabled. Use dev@example.com / devmode to bypass Firebase." 
+                            : "Sign up with your email and password"}
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
                     <form onSubmit={handleSignUp}>
                         <div className="grid gap-6">
-                            {/* Social Buttons - dummy for now */}
+                            {/* Input Fields */}
                             <div className="flex justify-center">
                                 <ViewToggle />
                             </div>
 
-                            <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
-                                <span className="bg-card text-muted-foreground relative z-10 px-2">
-                                    Or continue with
-                                </span>
-                            </div>
-
-                            {/* Input Fields */}
                             <div className="grid gap-6">
                                 <div className="grid gap-3">
                                     <Label htmlFor="name">Name</Label>
                                     <Input
                                         id="name"
                                         type="text"
-                                        placeholder="John Doe"
+                                        placeholder={isDevelopment ? "Dev User" : "John Doe"}
                                         value={name}
                                         onChange={(e) => setName(e.target.value)}
                                         required
@@ -115,7 +122,7 @@ export function SignUpForm({
                                     <Input
                                         id="email"
                                         type="email"
-                                        placeholder="m@example.com"
+                                        placeholder={isDevelopment ? "dev@example.com" : "m@example.com"}
                                         value={email}
                                         onChange={(e) => setEmail(e.target.value)}
                                         required
@@ -126,6 +133,7 @@ export function SignUpForm({
                                     <Input
                                         id="password"
                                         type="password"
+                                        placeholder={isDevelopment ? "devmode" : "••••••••"}
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
                                         required
@@ -136,6 +144,7 @@ export function SignUpForm({
                                     <Input
                                         id="confirm-password"
                                         type="password"
+                                        placeholder={isDevelopment ? "devmode" : "••••••••"}
                                         value={confirmPassword}
                                         onChange={(e) => setConfirmPassword(e.target.value)}
                                         required
@@ -155,11 +164,13 @@ export function SignUpForm({
                         </div>
                     </form>
                 </CardContent>
+                <CardFooter className="flex flex-col items-center gap-2">
+                    <div className="text-muted-foreground *:[a]:hover:text-primary text-center text-xs text-balance *:[a]:underline *:[a]:underline-offset-4">
+                        By signing up, you agree to our <a href="#">Terms of Service</a> and{" "}
+                        <a href="#">Privacy Policy</a>.
+                    </div>
+                </CardFooter>
             </Card>
-            <div className="text-muted-foreground *:[a]:hover:text-primary text-center text-xs text-balance *:[a]:underline *:[a]:underline-offset-4">
-                By signing up, you agree to our <a href="#">Terms of Service</a> and{" "}
-                <a href="#">Privacy Policy</a>.
-            </div>
         </div>
     )
 }
