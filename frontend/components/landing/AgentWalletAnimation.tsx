@@ -4,7 +4,7 @@ import WalletCreation from "./steps/WalletCreation";
 import SecurePayment from "./steps/SecurePayment";
 import SecurityAudit from "./steps/SecurityAudit";
 import ConnectionLines from "./ConnectionLines";
-import BottomWave from "./BottomWave";
+// import BottomWave from "./BottomWave"; // Removed BottomWave import
 import AnimationStyles from "./AnimationStyles";
 import DashboardShowcase from "./DashboardShowcase";
 import TechnicalSection from "./TechnicalSection";
@@ -46,7 +46,7 @@ const AgentWalletAnimation = () => {
             {/* The original TechnicalSection was here, now DashboardShowcase comes first */}
           </div>
         </div>
-        <BottomWave />
+        {/* <BottomWave /> */} {/* Removed BottomWave rendering */}
       </div>
       <DashboardShowcase />
       {/* <div className="bg-slate-50">
