@@ -1,17 +1,15 @@
 "use client";
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { Button } from "@/components/ui/button";
-import useNextRouterAdapter from "./useNextRouterAdapter";
 
 const Navigation = () => {
-  const navigate = useNextRouterAdapter();
-
   return (
     <nav className="fixed top-0 w-full z-50 bg-white/80 backdrop-blur-md border-b border-slate-200">
       <div className="container mx-auto px-4 py-4 flex items-center justify-between">
         <div className="flex items-center space-x-3">
-          <img src="/logo.svg" alt="Walta" className="h-14 w-auto" />
+          <Image src="/logo.svg" alt="Walta" width={56} height={56} className="h-14 w-auto" />
         </div>
         
         <div className="hidden md:flex items-center space-x-8">

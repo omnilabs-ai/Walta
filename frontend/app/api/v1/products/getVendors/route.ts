@@ -1,7 +1,7 @@
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 import { getAllVendors } from "@/app/firebase/firestore/misc";
 
-export async function GET(req: NextRequest) {
+export async function GET() {
     try {
         const vendors = await getAllVendors();
         return NextResponse.json({ vendors }, { status: 200 });

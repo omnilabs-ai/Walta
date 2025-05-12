@@ -2,8 +2,6 @@
 
 
 import * as React from "react"
-import { useAtomValue } from "jotai"
-import { currentUserAtom } from "@/app/atoms/settings"
 import {
     DndContext,
     KeyboardSensor,
@@ -30,13 +28,8 @@ import {
     IconChevronRight,
     IconChevronsLeft,
     IconChevronsRight,
-    IconCircleCheckFilled,
-    IconDotsVertical,
     IconGripVertical,
     IconLayoutColumns,
-    IconLoader,
-    IconPlus,
-    IconTrendingUp,
     IconClipboardCopy
 } from "@tabler/icons-react"
 import {
@@ -56,29 +49,15 @@ import {
 } from "@tanstack/react-table"
 import { toast } from "sonner"
 import { z } from "zod"
-import { useIsMobile } from "@/hooks/use-mobile"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
-    Drawer,
-    DrawerClose,
-    DrawerContent,
-    DrawerDescription,
-    DrawerFooter,
-    DrawerHeader,
-    DrawerTitle,
-    DrawerTrigger,
-} from "@/components/ui/drawer"
-import {
     DropdownMenu,
     DropdownMenuCheckboxItem,
     DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import {
     Select,
@@ -98,8 +77,6 @@ import {
 import {
     Tabs,
     TabsContent,
-    TabsList,
-    TabsTrigger,
 } from "@/components/ui/tabs"
 import { Timestamp } from "firebase/firestore"
 
@@ -202,17 +179,12 @@ export function TransactionDataTable({ data }: TransactionDataTableProps) {
         pageIndex: 0,
         pageSize: 10,
     })
-    const sortableId = React.useId()
+    
     const sensors = useSensors(
         useSensor(MouseSensor, {}),
         useSensor(TouchSensor, {}),
         useSensor(KeyboardSensor, {})
     )
-    const itemIds = React.useMemo<UniqueIdentifier[]>(() =>
-        localData.map(item => item.created_at.seconds.toString()),
-        [localData]
-    );
-
 
     const columns: ColumnDef<z.infer<typeof transactionSchema>>[] = [
         {

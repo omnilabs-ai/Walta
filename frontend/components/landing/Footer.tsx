@@ -1,5 +1,5 @@
 
-import { Github } from "lucide-react";
+import Image from "next/image";
 
 const Footer = () => {
   return (
@@ -8,7 +8,7 @@ const Footer = () => {
         <div className="flex flex-col md:flex-row justify-between mb-12">
           <div className="mb-8 md:mb-0">
             <div className="flex items-center space-x-2 mb-4">
-              <img src="/logo.svg" alt="Walta" className="h-12 w-auto" />
+              <Image src="/logo.svg" alt="Walta" width={48} height={48} className="h-12 w-auto" />
             </div>
             <p className="text-sm max-w-xs">
               Secure financial infrastructure for AI agents

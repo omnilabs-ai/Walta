@@ -30,14 +30,10 @@ import {
     IconChevronRight,
     IconChevronsLeft,
     IconChevronsRight,
-    IconCircleCheckFilled,
     IconDotsVertical,
     IconGripVertical,
     IconLayoutColumns,
-    IconLoader,
     IconPlus,
-    IconTrendingUp,
-    IconClipboardCopy
 } from "@tabler/icons-react"
 import {
     ColumnDef,
@@ -57,7 +53,6 @@ import {
 import { toast } from "sonner"
 import { z } from "zod"
 import { useIsMobile } from "@/hooks/use-mobile"
-import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import {
@@ -75,7 +70,6 @@ import {
     DropdownMenuCheckboxItem,
     DropdownMenuContent,
     DropdownMenuItem,
-    DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
@@ -98,10 +92,7 @@ import {
 import {
     Tabs,
     TabsContent,
-    TabsList,
-    TabsTrigger,
 } from "@/components/ui/tabs"
-import { Textarea } from "@/components/ui/textarea"
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
 import { productSchema } from "@/app/atoms/settings"
 
@@ -219,15 +210,11 @@ export function ProductDataTable({ data }: ProductDataTableProps) {
         pageIndex: 0,
         pageSize: 10,
     })
-    const sortableId = React.useId()
     const sensors = useSensors(
         useSensor(MouseSensor, {}),
         useSensor(TouchSensor, {}),
         useSensor(KeyboardSensor, {})
     )
-    const itemIds = React.useMemo<UniqueIdentifier[]>(() =>
-        localData.map(item => item.product_id as UniqueIdentifier),
-        [localData]);
 
     const columns: ColumnDef<z.infer<typeof productSchema>>[] = [
         {
@@ -326,38 +313,7 @@ export function ProductDataTable({ data }: ProductDataTableProps) {
         },
         {
             id: "actions",
-            cell: ({ row }) => {
-                const ref = React.useRef<() => void>(() => { });
-                const item = row.original;
-
-                return (
-                    <>
-                        <ProductEditorDrawer
-                            item={item}
-                            triggerRef={ref}
-                            triggerFromName={false}
-                        />
-
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" className="size-8 text-muted-foreground">
-                                    <IconDotsVertical />
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-32">
-                                <DropdownMenuItem onClick={() => ref.current?.()}>
-                                    Edit
-                                </DropdownMenuItem>
-                                <DeleteProductDialog item={item}>
-                                    <DropdownMenuItem className="text-red-600">
-                                        Delete
-                                    </DropdownMenuItem>
-                                </DeleteProductDialog>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
-                    </>
-                );
-            },
+            cell: ({ row }) => <ActionsCell row={row} />,
         }
     ]
 
@@ -773,7 +729,8 @@ function DeleteProductDialog({
           toast.success("Product deleted successfully");
           setOpen(false);
         }
-      } catch (err) {
+      } catch (err: unknown) {
+        console.error(err);
         toast.error("Unexpected error deleting product")
       } finally {
         setLoading(false)
@@ -786,7 +743,7 @@ function DeleteProductDialog({
           onClick={() => setOpen(true)}
           className="cursor-pointer px-2 py-1.5 text-sm text-red-600 hover:bg-red-100 rounded-sm"
         >
-          Delete
+          {children}
         </div>
   
         <Dialog open={open} onOpenChange={setOpen}>
@@ -959,6 +916,39 @@ function CreateProductDialog() {
                 </DialogFooter>
             </DialogContent>
         </Dialog>
+    );
+}
+
+function ActionsCell({ row }: { row: Row<z.infer<typeof productSchema>> }) {
+    const ref = React.useRef<() => void>(() => { });
+    const item = row.original;
+
+    return (
+        <>
+            <ProductEditorDrawer
+                item={item}
+                triggerRef={ref}
+                triggerFromName={false}
+            />
+
+            <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" className="size-8 text-muted-foreground">
+                        <IconDotsVertical />
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-32">
+                    <DropdownMenuItem onClick={() => ref.current?.()}>
+                        Edit
+                    </DropdownMenuItem>
+                    <DeleteProductDialog item={item}>
+                        <DropdownMenuItem className="text-red-600">
+                            Delete
+                        </DropdownMenuItem>
+                    </DeleteProductDialog>
+                </DropdownMenuContent>
+            </DropdownMenu>
+        </>
     );
 }
 

@@ -7,7 +7,6 @@ import ConnectionLines from "./ConnectionLines";
 // import BottomWave from "./BottomWave"; // Removed BottomWave import
 import AnimationStyles from "./AnimationStyles";
 import DashboardShowcase from "./DashboardShowcase";
-import TechnicalSection from "./TechnicalSection";
 
 const AgentWalletAnimation = () => {
   const [scrollY, setScrollY] = useState(0);

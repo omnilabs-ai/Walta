@@ -1,3 +1,5 @@
+import Image from "next/image";
+
 const DashboardShowcase = () => {
   return (
     <div className="pt-16 pb-12 bg-slate-50"> {/* Changed py-16 to pt-16 pb-12 */}
@@ -9,10 +11,13 @@ const DashboardShowcase = () => {
         </div>
         <div className="max-w-6xl mx-auto"> {/* Adjusted to wrap both image box and paragraph */}
           <div className="bg-white p-4 sm:p-6 md:p-8 rounded-xl shadow-2xl border border-slate-200">
-            <img 
+            <Image 
               src="/lovable-uploads/03792152-325b-4739-879a-30e7cdfa3f9e.png" 
               alt="Developer Dashboard Preview" 
               className="rounded-lg shadow-lg w-full h-auto" 
+              width={1200}
+              height={800}
+              priority
             />
           </div>
           <p className="mt-8 text-gray-700 text-center max-w-4xl text-xl font-medium mx-auto">

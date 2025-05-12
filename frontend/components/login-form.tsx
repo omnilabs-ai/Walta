@@ -48,9 +48,10 @@ export function LoginForm({
       await signInWithEmailAndPassword(auth, email, password)
       toast.success("Login successful!")
       router.push(view === "vendor" ? "/vendor" : "/user")
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(error)
-      toast.error(error.message || "Login failed")
+      const errorMessage = error instanceof Error ? error.message : "Login failed"
+      toast.error(errorMessage)
     } finally {
       setLoading(false)
     }

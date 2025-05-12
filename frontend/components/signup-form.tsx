@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
 import { createUserWithEmailAndPassword } from "firebase/auth"
+import { FirebaseError } from "firebase/app"
 import { auth } from "@/app/firebase/auth"
 import { useAtom } from "jotai"
 import { dashboardViewAtom, type DashboardView } from "@/app/atoms/settings"
@@ -40,8 +41,6 @@ export function SignUpForm({
         if (initialView === 'developer' || initialView === 'vendor') {
             setView(initialView as DashboardView)
         }
-        // Run only once on mount
-        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchParams, setView]);
 
     const handleSignUp = async (e: React.FormEvent) => {
@@ -66,7 +65,7 @@ export function SignUpForm({
             const user = userCredential.user
 
             // Call API route to create Firestore user
-            const response = await fetch("/api/user/createUser", {
+            await fetch("/api/user/createUser", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -76,11 +75,17 @@ export function SignUpForm({
                 })
             })
 
+            
+
             toast.success("Account created successfully!")
             router.push(view === "vendor" ? "/vendor" : "/user")
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error(error)
-            toast.error(error.message || "Signup failed")
+            if (error instanceof FirebaseError) {
+                toast.error(error.message || "Signup failed")
+            } else {
+                toast.error("Signup failed")
+            }
         } finally {
             setLoading(false)
         }

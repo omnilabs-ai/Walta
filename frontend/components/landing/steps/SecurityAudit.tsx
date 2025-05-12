@@ -1,4 +1,4 @@
-import { Database, ShieldCheck } from "lucide-react";
+import { Database } from "lucide-react";
 
 interface SecurityAuditProps {
   scrollY: number;
