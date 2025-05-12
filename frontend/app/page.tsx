@@ -1,18 +1,5 @@
-"use client";
-
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { redirect } from 'next/navigation';
 
 export default function Home() {
-  const router = useRouter();
-  
-  useEffect(() => {
-    router.push("/landing");
-  }, [router]);
-  
-  return (
-    <div className="h-screen w-screen flex items-center justify-center">
-      <div className="animate-pulse">Loading...</div>
-    </div>
-  );
+  redirect('/landing');
 } 
