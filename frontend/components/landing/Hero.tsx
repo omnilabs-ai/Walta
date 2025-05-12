@@ -6,7 +6,7 @@ import { ArrowRight, CheckCircle } from "lucide-react";
 
 const Hero = () => {
   return (
-    <div className="pt-32 pb-20 md:pt-40 md:pb-32 relative overflow-hidden">
+    <div id="hero" className="pt-32 pb-20 md:pt-40 md:pb-32 relative overflow-hidden">
       <div className="container mx-auto px-4 relative z-10">
         <div className="max-w-3xl mx-auto text-center">
           <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-slate-900 tracking-tight">

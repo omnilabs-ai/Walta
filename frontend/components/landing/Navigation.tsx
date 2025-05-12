@@ -13,9 +13,9 @@ const Navigation = () => {
         </div>
         
         <div className="hidden md:flex items-center space-x-8">
-          <a href="#product" className="text-slate-800 hover:text-blue-900 text-lg font-bold">Product</a>
+          <a href="#hero" className="text-slate-800 hover:text-blue-900 text-lg font-bold">Product</a>
           <a href="#solutions" className="text-slate-800 hover:text-blue-900 text-lg font-bold">Solutions</a>
-          <a href="#docs" className="text-slate-800 hover:text-blue-900 text-lg font-bold">Documentation</a>
+          <a href={process.env.NEXT_PUBLIC_DOCS_URL} className="text-slate-800 hover:text-blue-900 text-lg font-bold">Documentation</a>
           <a href="#contact" className="text-slate-800 hover:text-blue-900 text-lg font-bold">Contact Us</a>
         </div>
         
