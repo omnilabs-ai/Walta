@@ -1,5 +1,6 @@
 import { GalleryVerticalEnd } from "lucide-react"
 import Link from "next/link"
+import { Suspense } from "react"
 
 import { SignUpForm } from "@/components/signup-form"
 
@@ -13,7 +14,9 @@ export default function LoginPage() {
           </div>
           Walta inc.
         </Link>
-        <SignUpForm />
+        <Suspense fallback={<div>Loading...</div>}>
+          <SignUpForm />
+        </Suspense>
       </div>
     </div>
   )
