@@ -26,7 +26,7 @@ export default function SetupPage() {
           console.log("err", err)
         });
       })
-  }, []);
+  }, [currentUser?.uid]);
 
   return (
     <div className="p-[100px]">

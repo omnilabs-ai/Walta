@@ -3,11 +3,11 @@
 import * as React from "react"
 import { useAtom, useAtomValue } from "jotai"
 import { dashboardViewAtom } from "@/app/atoms/settings" // Adjust this path if needed
+import Link from "next/link"
+import Image from "next/image"
 
 import {
   IconDashboard,
-  IconKey,
-  IconUserCog,
   IconExchange,
   IconPlug,
   IconBoxSeam,
@@ -15,7 +15,6 @@ import {
   IconSettings,
   IconHelp,
   IconSearch,
-  IconInnerShadowTop,
 } from "@tabler/icons-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -72,9 +71,9 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
               asChild
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
-              <a href="/">
-                <img src="/logo.svg" alt="Walta Logo" className="ml-[-8px]" />
-              </a>
+              <Link href="/">
+                <Image src="/logo.svg" alt="Walta Logo" width={32} height={32} className="ml-[-8px]" />
+              </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>

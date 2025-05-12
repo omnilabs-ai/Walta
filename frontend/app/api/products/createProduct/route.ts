@@ -7,7 +7,8 @@ export async function POST(request: NextRequest) {
   try {
     const newProduct = await createProduct(userId, { name, description, price, type, vendorName, metadata});
     return NextResponse.json(newProduct, { status: 200 });
-  } catch (error: any) {
-    return NextResponse.json({ message: "Error creating product", error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    return NextResponse.json({ message: "Error creating product", error: errorMessage }, { status: 500 });
   }
 } 

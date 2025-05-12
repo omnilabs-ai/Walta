@@ -12,7 +12,8 @@ export async function POST(request: NextRequest) {
       const products = await getProducts(userId);
       return NextResponse.json(products, { status: 200 });
     }
-  } catch (error: any) {
-    return NextResponse.json({ message: "Error fetching products", error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    return NextResponse.json({ message: "Error fetching products", error: errorMessage }, { status: 500 });
   }
 } 

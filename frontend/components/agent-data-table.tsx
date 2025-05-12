@@ -29,13 +29,10 @@ import {
   IconChevronRight,
   IconChevronsLeft,
   IconChevronsRight,
-  IconCircleCheckFilled,
   IconDotsVertical,
   IconGripVertical,
   IconLayoutColumns,
-  IconLoader,
   IconPlus,
-  IconTrendingUp,
   IconClipboardCopy
 } from "@tabler/icons-react"
 import {
@@ -74,7 +71,6 @@ import {
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
@@ -97,8 +93,6 @@ import {
 import {
   Tabs,
   TabsContent,
-  TabsList,
-  TabsTrigger,
 } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
@@ -226,15 +220,11 @@ export function AgentDataTable({ data }: AgentDataTableProps) {
     pageIndex: 0,
     pageSize: 10,
   })
-  const sortableId = React.useId()
   const sensors = useSensors(
     useSensor(MouseSensor, {}),
     useSensor(TouchSensor, {}),
     useSensor(KeyboardSensor, {})
   )
-  const itemIds = React.useMemo<UniqueIdentifier[]>(() =>
-    localData.map(item => item.agent_id as UniqueIdentifier),
-    [localData]);
 
   const columns: ColumnDef<z.infer<typeof schema>>[] = [
     {
@@ -357,36 +347,7 @@ export function AgentDataTable({ data }: AgentDataTableProps) {
     },
     {
       id: "actions",
-      cell: ({ row }) => {
-        const ref = React.useRef<() => void>(() => { })
-        const item = row.original
-
-        return (
-          <>
-            <AgentEditorDrawer
-              item={item}
-              triggerRef={ref}
-              triggerFromName={false}
-            />
-
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="size-8 text-muted-foreground">
-                  <IconDotsVertical />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-32">
-                <DropdownMenuItem onClick={() => ref.current?.()}>Edit</DropdownMenuItem>
-                <DeleteAgentDialog
-                  item={item}
-                >
-                  <DropdownMenuItem className="text-red-600">Delete</DropdownMenuItem>
-                </DeleteAgentDialog>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </>
-        )
-      },
+      cell: ({ row }) => <ActionCell row={row} />,
     }
   ]
 
@@ -837,6 +798,7 @@ function DeleteAgentDialog({
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      {children}
     </>
   )
 }
@@ -911,4 +873,35 @@ function CreateAgentDialog() {
       </DialogContent>
     </Dialog>
   );
+}
+
+function ActionCell({ row }: { row: Row<z.infer<typeof schema>> }) {
+  const ref = React.useRef<() => void>(() => { })
+  const item = row.original
+
+  return (
+    <>
+      <AgentEditorDrawer
+        item={item}
+        triggerRef={ref}
+        triggerFromName={false}
+      />
+
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button variant="ghost" className="size-8 text-muted-foreground">
+            <IconDotsVertical />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-32">
+          <DropdownMenuItem onClick={() => ref.current?.()}>Edit</DropdownMenuItem>
+          <DeleteAgentDialog
+            item={item}
+          >
+            <DropdownMenuItem className="text-red-600">Delete</DropdownMenuItem>
+          </DeleteAgentDialog>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </>
+  )
 }

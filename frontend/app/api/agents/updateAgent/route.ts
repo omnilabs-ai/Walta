@@ -7,8 +7,9 @@ export async function POST(request: NextRequest) {
   const updatedAgent = await updateAgent(userId, agentId, updatedFields);
   try {
     return NextResponse.json(updatedAgent, { status: 200 });
-  } catch (error: any) {
-    return NextResponse.json({ message: "Error updating agent", error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    return NextResponse.json({ message: "Error updating agent", error: errorMessage }, { status: 500 });
   }
 }
 

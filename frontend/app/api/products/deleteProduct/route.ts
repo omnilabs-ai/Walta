@@ -7,7 +7,8 @@ export async function POST(request: NextRequest) {
   try {
     const result = await deleteProduct(userId, productId);
     return NextResponse.json(result, { status: 200 });
-  } catch (error: any) {
-    return NextResponse.json({ message: "Error deleting product", error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    return NextResponse.json({ message: "Error deleting product", error: errorMessage }, { status: 500 });
   }
 } 

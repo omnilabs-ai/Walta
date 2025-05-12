@@ -16,7 +16,8 @@ export async function POST(request: NextRequest) {
     });
     
     return NextResponse.json({ newUser, account, accountId, customer }, { status: 200 });
-  } catch (error: any) {
-    return NextResponse.json({ message: "Error creating user", error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    return NextResponse.json({ message: "Error creating user", error: errorMessage }, { status: 500 });
   }
 }

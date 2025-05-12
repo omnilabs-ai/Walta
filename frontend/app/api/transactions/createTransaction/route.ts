@@ -7,7 +7,8 @@ export async function POST(request: NextRequest) {
   try {
     const { newTransaction, transaction_id } = await addTransaction(userId, transaction);
     return NextResponse.json({ newTransaction, transaction_id }, { status: 200 });
-  } catch (error: any) {
-    return NextResponse.json({ message: "Error creating transaction", error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    return NextResponse.json({ message: "Error creating transaction", error: errorMessage }, { status: 500 });
   }
 } 

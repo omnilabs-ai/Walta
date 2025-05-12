@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect } from "react";
 import { useAtomValue } from "jotai";
 import { currentUserAtom } from "@/app/atoms/settings";
 import { agentsAtom } from "@/app/atoms/settings";

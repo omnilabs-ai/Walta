@@ -8,7 +8,8 @@ export async function POST(request: NextRequest) {
 
   try {
     return NextResponse.json(deletedAgent, { status: 200 });
-  } catch (error: any) {
-    return NextResponse.json({ message: "Error deleting agent", error: error.message }, { status: 500 });
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    return NextResponse.json({ message: "Error deleting agent", error: errorMessage }, { status: 500 });
   }
 }
