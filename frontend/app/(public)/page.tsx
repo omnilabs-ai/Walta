@@ -47,6 +47,10 @@ const LandingPage = () => {
       } else if (buttonText.includes('Log In')) {
         e.preventDefault();
         router.push('/login');
+      } else if (buttonText.includes('Request Demo') || 
+                buttonText.includes('Contact Us')) {
+        e.preventDefault();
+        window.location.href = 'https://calendly.com/walta_team';
       }
     };
     

@@ -34,34 +34,34 @@ const SolutionsSection = () => {
             <div className="space-y-6">
               <div className="text-xl font-bold text-slate-800 mb-6">Programmable Financial Controls</div>
               
-              <div className="p-4 border border-slate-100 rounded-lg bg-slate-50 hover:border-blue-200 hover:bg-blue-50 transition-colors cursor-pointer">
-                <h4 className="font-medium">Agent Authentication</h4>
-                <p className="text-sm text-slate-600 mt-1">Cryptographically verify agent identity</p>
+              <div className="p-4 border border-slate-100 rounded-lg bg-slate-50" style={{ borderColor: "#e2e8f0", backgroundColor: "#f8fafc" }}>
+                <h4 className="font-medium" style={{ color: "#1e293b" }}>Agent Authentication</h4>
+                <p className="text-sm text-slate-600 mt-1" style={{ color: "#475569" }}>Cryptographically verify agent identity</p>
               </div>
               
-              <div className="p-4 border border-green-100 rounded-lg bg-green-50">
-                <h4 className="font-medium text-green-800">Spending Controls</h4>
+              <div className="p-4 border border-green-100 rounded-lg bg-green-50" style={{ borderColor: "#bbf7d0", backgroundColor: "#f0fdf4" }}>
+                <h4 className="font-medium text-green-800" style={{ color: "#166534" }}>Spending Controls</h4>
                 <div className="mt-4 space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm">Transaction Limit</span>
-                    <span className="font-mono text-sm">$100</span>
+                    <span className="text-sm" style={{ color: "#374151" }}>Transaction Limit</span>
+                    <span className="font-mono text-sm" style={{ color: "#374151" }}>$100</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm">Daily Limit</span>
-                    <span className="font-mono text-sm">$500</span>
+                    <span className="text-sm" style={{ color: "#374151" }}>Daily Limit</span>
+                    <span className="font-mono text-sm" style={{ color: "#374151" }}>$500</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm">Merchant Whitelist</span>
-                    <span className="font-mono text-sm">api.store.com, data.cloud</span>
+                    <span className="text-sm" style={{ color: "#374151" }}>Merchant Whitelist</span>
+                    <span className="font-mono text-sm" style={{ color: "#374151" }}>api.store.com, data.cloud</span>
                   </div>
                 </div>
               </div>
               
-              <div className="p-4 border border-blue-100 rounded-lg bg-blue-50">
-                <h4 className="font-medium text-blue-800">Transaction Status</h4>
+              <div className="p-4 border border-blue-100 rounded-lg bg-blue-50" style={{ borderColor: "#93c5fd", backgroundColor: "#eff6ff" }}>
+                <h4 className="font-medium text-blue-800" style={{ color: "#1e40af" }}>Transaction Status</h4>
                 <div className="mt-2 flex items-center">
-                  <div className="h-3 w-3 bg-green-500 rounded-full mr-2"></div>
-                  <span className="text-sm font-medium text-green-700">Approved</span>
+                  <div className="h-3 w-3 bg-green-500 rounded-full mr-2" style={{ backgroundColor: "#22c55e" }}></div>
+                  <span className="text-sm font-medium text-green-700" style={{ color: "#15803d" }}>Approved</span>
                 </div>
               </div>
             </div>

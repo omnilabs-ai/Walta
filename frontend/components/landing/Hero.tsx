@@ -28,7 +28,7 @@ const Hero = () => {
             </Button>
             <Button 
               className="bg-[#192E5B] text-white hover:bg-[#192E5B]/90 px-8 py-6 h-auto text-lg font-bold flex items-center justify-center w-64"
-              onClick={() => window.location.href = "#docs"}
+              onClick={() => window.location.href = "https://calendly.com/walta_team"}
             >
               Request Demo
             </Button>

@@ -18,7 +18,7 @@ const Navigation = () => {
           <a href="#product" className="text-slate-800 hover:text-blue-900 text-lg font-bold">Product</a>
           <a href="#solutions" className="text-slate-800 hover:text-blue-900 text-lg font-bold">Solutions</a>
           <a href="#docs" className="text-slate-800 hover:text-blue-900 text-lg font-bold">Documentation</a>
-          <a href="#contact" className="text-slate-800 hover:text-blue-900 text-lg font-bold">Contact Us</a>
+          <a href="https://calendly.com/walta_team" className="text-slate-800 hover:text-blue-900 text-lg font-bold">Contact Us</a>
         </div>
         
         <div className="flex items-center">
