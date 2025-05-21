@@ -30,6 +30,7 @@ const Footer = () => {
               <ul className="space-y-2 text-sm">
                 <li><a href="#" className="hover:text-white transition-colors">About</a></li>
                 <li><a href="#" className="hover:text-white transition-colors">Blog</a></li>
+                <li><a href="https://calendly.com/walta_team" className="hover:text-white transition-colors">Contact Us</a></li>
               </ul>
             </div>
             
