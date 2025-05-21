@@ -35,11 +35,11 @@ const SolutionsSection = () => {
               <div className="text-xl font-bold text-slate-800 mb-6">Programmable Financial Controls</div>
               
               <div className="p-4 border border-slate-100 rounded-lg bg-slate-50 hover:border-blue-200 hover:bg-blue-50 transition-colors cursor-pointer">
-                <h4 className="font-medium">Agent Authentication</h4>
+                <h4 className="font-medium text-slate-800">Agent Authentication</h4>
                 <p className="text-sm text-slate-600 mt-1">Cryptographically verify agent identity</p>
               </div>
               
-              <div className="p-4 border border-green-100 rounded-lg bg-green-50">
+              <div className="p-4 border border-green-100 rounded-lg bg-green-50 text-green-700">
                 <h4 className="font-medium text-green-800">Spending Controls</h4>
                 <div className="mt-4 space-y-3">
                   <div className="flex items-center justify-between">
