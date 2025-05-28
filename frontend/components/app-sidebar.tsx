@@ -72,7 +72,7 @@ export function AppSidebar(props: React.ComponentProps<typeof Sidebar>) {
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
               <Link href="/">
-                <Image src="/logo.svg" alt="Walta Logo" width={32} height={32} className="ml-[-8px]" />
+                <Image src="/logo.svg" alt="Walta Logo" width={200} height={200} className="ml-[-8px]" />
               </Link>
             </SidebarMenuButton>
           </SidebarMenuItem>
