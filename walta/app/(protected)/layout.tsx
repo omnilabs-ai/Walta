@@ -2,8 +2,6 @@
 
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
-import { onAuthStateChanged } from "firebase/auth"
-import { auth } from "@/app/firebase/auth"
 import { useAtom, useSetAtom } from "jotai"
 import { currentUserAtom } from "@/app/atoms/settings"
 import { dashboardViewAtom } from "@/app/atoms/settings"
@@ -13,6 +11,7 @@ import {
   SidebarInset,
   SidebarProvider,
 } from "@/components/ui/sidebar"
+import { createClient } from "@/app/utils/supabase/client"
 
 export default function ProtectedLayout({
   children,
@@ -25,41 +24,50 @@ export default function ProtectedLayout({
   const [view] = useAtom(dashboardViewAtom)
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (user) => {
-      if (!user) {
-        // Clear user in atom and redirect to login
+    const supabase = createClient()
+
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!session) {
         setCurrentUser(null)
         router.push("/login")
-      } else {
-        // Update user in atom
-        try {
-          // Optionally fetch additional user data from Firestore if needed
-          // For example:
-          // const response = await fetch(`/api/get-user?userId=${user.uid}`);
-          // const userData = await response.json();
-
-          setCurrentUser({
-            uid: user.uid,
-            email: user.email || '',
-            name: user.displayName || '',
-            mode: view  || "developer",
-          });
-        } catch (error) {
-          console.error('Error setting user data:', error);
-          // Fallback to basic user info if fetch fails
-          setCurrentUser({
-            uid: user.uid,
-            email: user.email || '',
-            name: user.displayName || '',
-            mode: "developer"
-          });
-        }
-
-        setAuthChecked(true)
+        return
       }
+
+      setCurrentUser({
+        uid: session.user.id,
+        email: session.user.email || '',
+        name: session.user.user_metadata?.name || '',
+        mode: view || "developer",
+      })
+      setAuthChecked(true)
     })
 
-    return () => unsubscribe()
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_OUT' || !session) {
+        setCurrentUser(null)
+        router.push("/login")
+        return
+      }
+
+      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+        setCurrentUser({
+          uid: session.user.id,
+          email: session.user.email || '',
+          name: session.user.user_metadata?.name || '',
+          mode: view || "developer",
+        })
+      }
+
+      setAuthChecked(true)
+    })
+
+    return () => {
+      subscription.unsubscribe()
+    }
   }, [router, setCurrentUser, view])
 
   if (!authChecked) {

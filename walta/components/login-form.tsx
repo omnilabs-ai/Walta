@@ -3,8 +3,7 @@
 import * as React from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
-import { signInWithEmailAndPassword } from "firebase/auth"
-import { auth } from "@/app/firebase/auth"
+import { login } from '@/app/utils/supabase/actions' 
 import { useAtom } from "jotai"
 import { dashboardViewAtom } from "@/app/atoms/settings"
 import { ViewToggle } from "./view-toggle"
@@ -45,7 +44,12 @@ export function LoginForm({
         return
       }
 
-      await signInWithEmailAndPassword(auth, email, password)
+      const result = await login(email, password)
+      
+      if (!result.success) {
+        throw new Error(result.error)
+      }
+
       toast.success("Login successful!")
       router.push(view === "vendor" ? "/vendor" : "/user")
     } catch (error: unknown) {
@@ -63,7 +67,7 @@ export function LoginForm({
         <CardHeader className="text-center">
           <CardTitle className="text-xl">Login to your account</CardTitle>
           <CardDescription>
-            {isDevelopment ? "Development mode enabled. Use dev@example.com / devmode to bypass Firebase." : "Enter your email and password to login."}
+            {isDevelopment ? "Development mode enabled. Use dev@example.com / devmode to bypass authentication." : "Enter your email and password to login."}
           </CardDescription>
         </CardHeader>
         <CardContent>

@@ -13,7 +13,7 @@ class WaltaApi:
             api_key (Optional[str]): The API key for authentication. If not provided, will be loaded from environment.
         """
         load_dotenv()
-        self.host_url = "http://localhost:3000/api/v1"
+        self.host_url = "http://www.walta.ai/api/v1"
         self.agent_key = agent_key or os.getenv("WALTA_AGENT_KEY")
         
         if not self.host_url:

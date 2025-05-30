@@ -3,6 +3,48 @@ I am moving to San Francisco for a weekend and need a hotel. I want to stay at a
 """
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 system_prompt = """
 Task: Hotel Booking Assistant
 

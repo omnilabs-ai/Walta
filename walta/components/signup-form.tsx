@@ -15,12 +15,10 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
-import { createUserWithEmailAndPassword } from "firebase/auth"
-import { FirebaseError } from "firebase/app"
-import { auth } from "@/app/firebase/auth"
 import { useAtom } from "jotai"
 import { dashboardViewAtom, type DashboardView } from "@/app/atoms/settings"
 import { ViewToggle } from './view-toggle'
+import { signup } from '@/app/utils/supabase/actions'
 
 export function SignUpForm({
     className,
@@ -61,31 +59,18 @@ export function SignUpForm({
                 return
             }
 
-            const userCredential = await createUserWithEmailAndPassword(auth, email, password)
-            const user = userCredential.user
-
-            // Call API route to create Firestore user
-            await fetch("/api/user/createUser", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    userId: user.uid,
-                    name,
-                    email
-                })
-            })
-
+            const result = await signup(email, password)
             
+            if (!result.success) {
+                throw new Error(result.error)
+            }
 
             toast.success("Account created successfully!")
             router.push(view === "vendor" ? "/vendor" : "/user")
         } catch (error: unknown) {
             console.error(error)
-            if (error instanceof FirebaseError) {
-                toast.error(error.message || "Signup failed")
-            } else {
-                toast.error("Signup failed")
-            }
+            const errorMessage = error instanceof Error ? error.message : "Signup failed"
+            toast.error(errorMessage)
         } finally {
             setLoading(false)
         }
@@ -98,7 +83,7 @@ export function SignUpForm({
                     <CardTitle className="text-xl">Create an account</CardTitle>
                     <CardDescription>
                         {isDevelopment 
-                            ? "Development mode enabled. Use dev@example.com / devmode to bypass Firebase." 
+                            ? "Development mode enabled. Use dev@example.com / devmode to bypass authentication." 
                             : "Sign up with your email and password"}
                     </CardDescription>
                 </CardHeader>

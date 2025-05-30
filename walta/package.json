@@ -28,6 +28,8 @@
     "@radix-ui/react-tooltip": "^1.2.3",
     "@stripe/react-stripe-js": "^3.6.0",
     "@stripe/stripe-js": "^7.2.0",
+    "@supabase/ssr": "^0.6.1",
+    "@supabase/supabase-js": "^2.49.8",
     "@tabler/icons-react": "^3.31.0",
     "@tanstack/react-table": "^8.21.3",
     "class-variance-authority": "^0.7.1",
