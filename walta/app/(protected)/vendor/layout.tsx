@@ -30,7 +30,7 @@ export default function VendorLayout({
 
       try {
         // Get user's Stripe vendor ID from their profile
-        const userData = await fetch(`/api/user/getUser?userId=${currentUser.uid}&params=stripe_vendor_id`).then(res => res.json())
+        const userData = await fetch(`/api/user/getUser?params=stripe_vendor_id`).then(res => res.json())
 
         const accountId = userData.stripe_vendor_id
 

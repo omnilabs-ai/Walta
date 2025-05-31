@@ -802,7 +802,6 @@ function CreateProductDialog() {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
-                    userId: currentUser.uid,
                     name: name.trim(),
                     description: description.trim(),
                     price: parseFloat(price) || 0,

@@ -19,10 +19,10 @@ export async function createUser(user: User) {
     return data;
 }
 
-export async function getUser(user_id: string) {
+export async function getUser() {
     const supabase = await createClient();
 
-    const { data, error } = await supabase.from('users').select('*').eq('id', user_id).single();
+    const { data, error } = await supabase.from('users').select('*').single();
 
     if (error) {
         throw new Error(error.message);

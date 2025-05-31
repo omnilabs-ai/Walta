@@ -1,55 +1,104 @@
 // app/hooks/useAgentListener.ts
 import { useEffect } from "react";
 import { useSetAtom } from "jotai";
-import { agentsAtom } from "@/app/atoms/settings"; // <-- your atom holding agents
-import { db } from "@/app/service/firebase/auth"; // <-- use the client Firestore
-import { doc, onSnapshot } from "firebase/firestore";
+import { agentsAtom } from "@/app/atoms/settings";
+import { createClient } from "@/app/service/supabase/client";
 import { agentSchema } from "@/app/atoms/settings";
 import { z } from "zod";
 
-export function useAgentListener(userId: string | undefined) {
+export function useAgentListener() {
   const setAgents = useSetAtom(agentsAtom);
 
   useEffect(() => {
-    if (!userId) return;
 
-    // reference the specific user's document
-    const userDocRef = doc(db, "users", userId);
+    const supabase = createClient();
 
-    // set up real-time listener
-    const unsubscribe = onSnapshot(userDocRef, (docSnapshot) => {
-      if (!docSnapshot.exists()) {
+    // Set up real-time subscription to agents table
+    const subscription = supabase
+      .channel('agents-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'agents',
+        },
+        async () => {
+          // Fetch all agents for the user when any change occurs
+          const { data: agentsData, error } = await supabase
+            .from('agents')
+            .select('*')
+
+          if (error) {
+            console.error('Error fetching agents:', error);
+            setAgents([]);
+            return;
+          }
+
+          if (!agentsData) {
+            setAgents([]);
+            return;
+          }
+
+          // Transform Supabase data to match the expected schema
+          const agentsList = agentsData.map((agent) => ({
+            agent_id: agent.id,
+            agent_name: agent.name,
+            apiKey: agent.public_key,
+            active: agent.active,
+            transaction_list: [], // You might want to fetch this separately if needed
+            created_at: agent.created_at,
+          }));
+
+          // Validate each agent with Zod schema
+          const validAgents: z.infer<typeof agentSchema>[] = agentsList.filter(agent => {
+            return agentSchema.safeParse(agent).success;
+          });
+
+          // Update atom with the validated agents
+          setAgents(validAgents);
+        }
+      )
+      .subscribe();
+
+    // Initial fetch
+    const fetchAgents = async () => {
+      const { data: agentsData, error } = await supabase
+        .from('agents')
+        .select('*')
+
+      if (error) {
+        console.error('Error fetching agents:', error);
         setAgents([]);
         return;
       }
-
-      const data = docSnapshot.data();
-      const agentsData = data.agents as Record<string, any> | undefined;
 
       if (!agentsData) {
         setAgents([]);
         return;
       }
 
-      const agentsList = Object.entries(agentsData).map(([agent_id, agentData]) => ({
-        agent_id,
-        agent_name: agentData.agent_name ?? "Unnamed Agent",
-        apiKey: agentData.apikey ?? "", // Note: apikey vs apiKey naming
-        active: agentData.active ?? false,
-        transaction_list: agentData.transaction_list ?? [],
-        created_at: agentData.created_at ?? null,
+      const agentsList = agentsData.map((agent) => ({
+        agent_id: agent.id,
+        agent_name: agent.name,
+        apiKey: agent.public_key,
+        active: agent.active,
+        transaction_list: [], // You might want to fetch this separately if needed
+        created_at: agent.created_at,
       }));
 
-      // Validate each agent with Zod schema
       const validAgents: z.infer<typeof agentSchema>[] = agentsList.filter(agent => {
         return agentSchema.safeParse(agent).success;
       });
 
-      // Update atom with the validated agents
       setAgents(validAgents);
-    });
+    };
 
-    // clean up listener on unmount
-    return () => unsubscribe();
-  }, [userId, setAgents]);
+    fetchAgents();
+
+    // Clean up subscription on unmount
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [setAgents]);
 }

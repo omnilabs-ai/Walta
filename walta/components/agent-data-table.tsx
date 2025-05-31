@@ -96,6 +96,7 @@ import {
 } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
+import { generateKeyPair } from "@/lib/crypto"
 
 export const schema = z.object({
   transaction_list: z.array(z.any()), // or a more specific schema if needed
@@ -107,11 +108,9 @@ export const schema = z.object({
 })
 
 async function updateAgent({
-  userId,
   agentId,
   updatedFields,
 }: {
-  userId: string
   agentId: string
   updatedFields: Partial<z.infer<typeof schema>>
 }) {
@@ -120,7 +119,6 @@ async function updateAgent({
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        userId,
         agentId,
         updatedFields,
       }),
@@ -620,7 +618,6 @@ function AgentEditorDrawer({
     }
 
     const success = await updateAgent({
-      userId: currentUser.uid,
       agentId: item.agent_id,
       updatedFields,
     })
@@ -735,7 +732,6 @@ function DeleteAgentDialog({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userId: currentUser.uid,
           agentId: item.agent_id,
         }),
       });
@@ -814,12 +810,14 @@ function CreateAgentDialog() {
     setLoading(true);
 
     try {
+      const { publicKey, privateKey } = await generateKeyPair();
+      
       const res = await fetch("/api/agents/createAgent", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          userId: currentUser.uid,
           agent_name: name.trim(),
+          publicKey: publicKey,
         }),
       });
 
@@ -828,7 +826,8 @@ function CreateAgentDialog() {
         toast.error("Failed to create agent: " + json.error);
         return;
       }
-
+      
+      alert(privateKey)
       toast.success("Agent created!");
       setOpen(false);
       setName("");

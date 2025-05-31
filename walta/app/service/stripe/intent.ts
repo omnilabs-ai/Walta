@@ -9,4 +9,9 @@ const createSetupIntent = async (customerId: string) => {
     return setupIntent.client_secret;
 }
 
-export { createSetupIntent };
+const getCustomerPaymentMethods = async (customerId: string) => {
+    const paymentMethods = await stripe.customers.listPaymentMethods(customerId);
+    return paymentMethods;
+}
+
+export { createSetupIntent, getCustomerPaymentMethods };
