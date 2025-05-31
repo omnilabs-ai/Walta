@@ -17,7 +17,6 @@ import { Label } from "@/components/ui/label"
 import { toast } from "sonner"
 import { useAtom } from "jotai"
 import { dashboardViewAtom, type DashboardView } from "@/app/atoms/settings"
-import { ViewToggle } from './view-toggle'
 import { signup } from '@/app/service/supabase/auth'
 
 export function SignUpForm({
@@ -80,10 +79,12 @@ export function SignUpForm({
         <div className={cn("flex flex-col gap-6", className)} {...props}>
             <Card>
                 <CardHeader className="text-center">
-                    <CardTitle className="text-xl">Create an account</CardTitle>
+                    <CardTitle className="text-xl">
+                        {view === 'vendor' ? "Create a Vendor Account" : "Create a Developer Account"}
+                    </CardTitle>
                     <CardDescription>
-                        {isDevelopment 
-                            ? "Development mode enabled. Use dev@example.com / devmode to bypass authentication." 
+                        {isDevelopment
+                            ? "Development mode enabled. Use dev@example.com / devmode to bypass authentication."
                             : "Sign up with your email and password"}
                     </CardDescription>
                 </CardHeader>
@@ -92,16 +93,17 @@ export function SignUpForm({
                         <div className="grid gap-6">
                             {/* Input Fields */}
                             <div className="flex justify-center">
-                                <ViewToggle />
                             </div>
 
                             <div className="grid gap-6">
                                 <div className="grid gap-3">
-                                    <Label htmlFor="name">Name</Label>
+                                    <Label htmlFor="name">
+                                        {view === 'vendor' ? "Company Name" : "Name"}
+                                    </Label>
                                     <Input
                                         id="name"
                                         type="text"
-                                        placeholder={isDevelopment ? "Dev User" : "John Doe"}
+                                        placeholder={view === 'vendor' ? "Acme Corp" : isDevelopment ? "Dev User" : "John Doe"}
                                         value={name}
                                         onChange={(e) => setName(e.target.value)}
                                         required
@@ -147,8 +149,11 @@ export function SignUpForm({
 
                             <div className="text-center text-sm">
                                 Already have an account?{" "}
-                                <a href="/login" className="underline underline-offset-4">
-                                    Log in
+                                <a
+                                    href={`/login?view=${view}`}
+                                    className="underline underline-offset-4"
+                                >
+                                    Login
                                 </a>
                             </div>
                         </div>
