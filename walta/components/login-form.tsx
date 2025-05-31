@@ -1,12 +1,10 @@
 "use client"
-
-import * as React from "react"
-import { useRouter } from "next/navigation"
+import { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from "next/navigation"
 import { toast } from "sonner"
-import { login } from '@/app/utils/supabase/actions' 
+import { login } from '@/app/utils/supabase/actions'
 import { useAtom } from "jotai"
-import { dashboardViewAtom } from "@/app/atoms/settings"
-import { ViewToggle } from "./view-toggle"
+import { dashboardViewAtom, type DashboardView } from "@/app/atoms/settings"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
@@ -25,11 +23,19 @@ export function LoginForm({
   ...props
 }: React.ComponentProps<"div">) {
   const router = useRouter()
-  const [email, setEmail] = React.useState("")
-  const [password, setPassword] = React.useState("")
-  const [loading, setLoading] = React.useState(false)
-  const [view] = useAtom(dashboardViewAtom)
-  const [isDevelopment] = React.useState(process.env.NODE_ENV === "development")
+  const [email, setEmail] = useState("")
+  const searchParams = useSearchParams()
+  const [password, setPassword] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [view, setView] = useAtom(dashboardViewAtom)
+  const [isDevelopment] = useState(process.env.NODE_ENV === "development")
+
+  useEffect(() => {
+    const initialView = searchParams.get('view')
+    if (initialView === 'developer' || initialView === 'vendor') {
+      setView(initialView as DashboardView)
+    }
+  }, [searchParams, setView]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -45,7 +51,7 @@ export function LoginForm({
       }
 
       const result = await login(email, password)
-      
+
       if (!result.success) {
         throw new Error(result.error)
       }
@@ -65,7 +71,9 @@ export function LoginForm({
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
         <CardHeader className="text-center">
-          <CardTitle className="text-xl">Login to your account</CardTitle>
+          <CardTitle className="text-xl">
+            {view === 'vendor' ? "Login to your Vendor Account" : "Login to your Developer Account"}
+          </CardTitle>
           <CardDescription>
             {isDevelopment ? "Development mode enabled. Use dev@example.com / devmode to bypass authentication." : "Enter your email and password to login."}
           </CardDescription>
@@ -75,7 +83,6 @@ export function LoginForm({
             <div className="grid gap-6">
               {/* Social Buttons - dummy for now */}
               <div className="flex justify-center">
-                <ViewToggle />
               </div>
 
               <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
@@ -115,7 +122,10 @@ export function LoginForm({
 
               <div className="text-center text-sm">
                 Don&apos;t have an account?{" "}
-                <a href="/signup" className="underline underline-offset-4">
+                <a
+                  href={`/signup?view=${view}`}
+                  className="underline underline-offset-4"
+                >
                   Sign up
                 </a>
               </div>

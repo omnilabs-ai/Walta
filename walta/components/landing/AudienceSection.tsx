@@ -17,7 +17,7 @@ const AudienceSection = () => {
   }, []);
 
   return (
-    <div className="py-24 bg-white">
+    <div id="register" className="py-24 bg-white">
       <AnimationStyles />
       <div className="container mx-auto px-4">
         <div className="text-center mb-16">
