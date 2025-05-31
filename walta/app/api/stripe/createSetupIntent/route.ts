@@ -1,4 +1,4 @@
-import { createSetupIntent } from "@/app/stripe/intent";
+import { createSetupIntent } from "@/app/service/stripe/intent";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(request: NextRequest) {

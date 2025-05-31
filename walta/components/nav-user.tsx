@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation"
 import { signOut } from "firebase/auth"
-import { auth } from "@/app/firebase/auth"
+import { auth } from "@/app/service/firebase/auth"
 import { toast } from "sonner"
 import { dashboardViewAtom } from "@/app/atoms/settings"
 import { useAtomValue } from "jotai"

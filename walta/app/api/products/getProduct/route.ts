@@ -1,19 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getProducts } from "@/app/firebase/firestore/products";
+import { getProduct, getProducts } from "@/app/service/supabase/products";
 
-export async function POST(request: NextRequest) {
-  const { userId, productId } = await request.json();
-
+export async function GET(request: NextRequest) {
   try {
+    const searchParams = request.nextUrl.searchParams;
+    const productId = searchParams.get('productId');
+    const vendorId = searchParams.get('vendorId');
+
+    let result;
     if (productId) {
-      const product = await getProducts(userId, productId);
-      return NextResponse.json(product, { status: 200 });
+      result = await getProduct(productId);
     } else {
-      const products = await getProducts(userId);
-      return NextResponse.json(products, { status: 200 });
+      result = await getProducts(vendorId || undefined);
     }
+    
+    return NextResponse.json(result, { status: 200 });
   } catch (error: unknown) {
+    console.error("Error in getProduct route:", error);
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    return NextResponse.json({ message: "Error fetching products", error: errorMessage }, { status: 500 });
+    return NextResponse.json(
+      { error: errorMessage },
+      { status: 500 }
+    );
   }
 } 

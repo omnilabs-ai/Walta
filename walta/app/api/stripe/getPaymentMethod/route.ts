@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getCustomerPaymentMethod } from "@/app/stripe/get";
+import { getCustomerPaymentMethod } from "@/app/service/stripe/get";
 
 export async function POST(req: NextRequest) {
     const { customerId } = await req.json();

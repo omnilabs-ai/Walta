@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { getAllTypes } from "@/app/firebase/firestore/misc";
+import { getAllTypes } from "@/app/service/firebase/firestore/misc";
 
 export async function GET() {
     try {

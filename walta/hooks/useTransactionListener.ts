@@ -1,7 +1,7 @@
 import { useEffect } from "react";
 import { useSetAtom } from "jotai";
 import { transactionsAtom, transactionSchema } from "@/app/atoms/settings";
-import { db } from "@/app/firebase/auth";
+import { db } from "@/app/service/firebase/auth";
 import { doc, onSnapshot } from "firebase/firestore";
 import { z } from "zod";
 

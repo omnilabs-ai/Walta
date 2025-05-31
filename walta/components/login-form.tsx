@@ -3,7 +3,7 @@
 import * as React from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
-import { login } from '@/app/utils/supabase/actions' 
+import { login } from '@/app/service/supabase/auth' 
 import { useAtom } from "jotai"
 import { dashboardViewAtom } from "@/app/atoms/settings"
 import { ViewToggle } from "./view-toggle"

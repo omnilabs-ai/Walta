@@ -11,7 +11,7 @@ import {
   SidebarInset,
   SidebarProvider,
 } from "@/components/ui/sidebar"
-import { createClient } from "@/app/utils/supabase/client"
+import { createClient } from "@/app/service/supabase/client"
 
 export default function ProtectedLayout({
   children,

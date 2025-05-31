@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getTransactions } from "@/app/firebase/firestore/transactions";
+import { getTransactions } from "@/app/service/firebase/firestore/transactions";
 
 export async function POST(request: NextRequest) {
   const { userId, transactionId } = await request.json();

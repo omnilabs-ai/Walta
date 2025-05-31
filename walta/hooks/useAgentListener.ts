@@ -2,7 +2,7 @@
 import { useEffect } from "react";
 import { useSetAtom } from "jotai";
 import { agentsAtom } from "@/app/atoms/settings"; // <-- your atom holding agents
-import { db } from "@/app/firebase/auth"; // <-- use the client Firestore
+import { db } from "@/app/service/firebase/auth"; // <-- use the client Firestore
 import { doc, onSnapshot } from "firebase/firestore";
 import { agentSchema } from "@/app/atoms/settings";
 import { z } from "zod";

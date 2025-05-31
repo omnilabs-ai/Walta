@@ -18,7 +18,7 @@ import { toast } from "sonner"
 import { useAtom } from "jotai"
 import { dashboardViewAtom, type DashboardView } from "@/app/atoms/settings"
 import { ViewToggle } from './view-toggle'
-import { signup } from '@/app/utils/supabase/actions'
+import { signup } from '@/app/service/supabase/auth'
 
 export function SignUpForm({
     className,
@@ -59,13 +59,13 @@ export function SignUpForm({
                 return
             }
 
-            const result = await signup(email, password)
-            
-            if (!result.success) {
-                throw new Error(result.error)
+            const signupResponse = await signup(email, password, name)
+
+            if (!signupResponse.success) {
+                throw new Error(signupResponse.error)
             }
 
-            toast.success("Account created successfully!")
+            toast.success("Account created successfully! Please check your email to verify your account.")
             router.push(view === "vendor" ? "/vendor" : "/user")
         } catch (error: unknown) {
             console.error(error)

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createCustomer } from "@/app/stripe/get";
+import { createCustomer } from "@/app/service/stripe/get";
 
 export async function POST(req: NextRequest) {
     const { name, email } = await req.json();

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { queryProductData } from "@/app/firebase/firestore/misc";
+import { queryProductData } from "@/app/service/firebase/firestore/misc";
 
 export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);

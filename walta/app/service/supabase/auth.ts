@@ -1,6 +1,8 @@
 'use server'
 
 import { createClient } from './server'
+import { createCustomer } from '@/app/service/stripe/get'
+import { createAccount } from '@/app/service/stripe/accounts'
 
 type AuthResponse = {
   success: boolean
@@ -26,6 +28,7 @@ export async function login(email: string, password: string): Promise<AuthRespon
     return {
       success: true
     }
+    
   } catch (error) {
     console.error('Login error:', error)
     return {
@@ -35,22 +38,54 @@ export async function login(email: string, password: string): Promise<AuthRespon
   }
 }
 
-export async function signup(email: string, password: string): Promise<AuthResponse> {
+export async function signup(email: string, password: string, name: string): Promise<AuthResponse> {
   try {
     const supabase = await createClient()
 
-    const { error } = await supabase.auth.signUp({
+    // First create the auth user
+    const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`
+        emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`,
+        data: {
+          name: name
+        }
       }
     })
 
-    if (error) {
+    if (authError) {
       return {
         success: false,
-        error: error.message
+        error: authError.message
+      }
+    }
+
+    if (!authData.user) {
+      return {
+        success: false,
+        error: 'Failed to create user'
+      }
+    }
+
+    // Create Stripe customer and account
+    const { customerId } = await createCustomer(name, email);
+    const { accountId } = await createAccount(email);
+
+    // Create user record in database
+    const { error: userError } = await supabase.from('users').insert({
+      email,
+      name,
+      stripe_customer_id: customerId,
+      stripe_vendor_id: accountId
+    });
+
+    if (userError) {
+      // If user creation fails, we should clean up the auth user
+      await supabase.auth.admin.deleteUser(authData.user.id);
+      return {
+        success: false,
+        error: userError.message
       }
     }
 

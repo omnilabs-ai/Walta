@@ -1,8 +1,8 @@
-import { getUserId, getProductData } from "@/app/firebase/firestore/misc";
-import { addTransaction } from "@/app/firebase/firestore/transactions";
-import { getUser } from "@/app/firebase/firestore/user";
-import { getCustomerPaymentMethod } from "@/app/stripe/get";
-import { processPayment } from "@/app/stripe/payment";
+import { getUserId, getProductData } from "@/app/service/firebase/firestore/misc";
+import { addTransaction } from "@/app/service/firebase/firestore/transactions";
+import { getUser } from "@/app/service/firebase/firestore/user";
+import { getCustomerPaymentMethod } from "@/app/service/stripe/get";
+import { processPayment } from "@/app/service/stripe/payment";
 import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { checkAccountStatus } from "@/app/stripe/accounts";
+import { checkAccountStatus } from "@/app/service/stripe/accounts";
 
 export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
