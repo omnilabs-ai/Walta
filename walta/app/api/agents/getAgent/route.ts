@@ -25,7 +25,7 @@ export async function GET(request: NextRequest) {
     
     const errorMessage = error instanceof Error ? error.message : 'An unknown error occurred';
     return NextResponse.json(
-      { 
+      {
         message: "Error fetching agents", 
         error: errorMessage 
       }, 
