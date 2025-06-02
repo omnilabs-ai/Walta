@@ -11,7 +11,6 @@ import {
 import { useState } from "react";
 
 // Access environment variable securely
-const hostUrl = process.env.NEXT_PUBLIC_HOST_URL;
 const stripePublicKey = process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY;
 const stripePromise = loadStripe(stripePublicKey || "");
 

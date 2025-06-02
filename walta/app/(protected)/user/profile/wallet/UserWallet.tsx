@@ -4,12 +4,13 @@ import { useEffect, useState } from "react";
 import CardSetupForm from "./cardSetupForm";
 import { useAtomValue } from "jotai";
 import { currentUserAtom } from "@/app/atoms/settings";
+import type { PaymentMethod } from "@stripe/stripe-js";
 
 export default function UserWallet() {
   const currentUser = useAtomValue(currentUserAtom);
   const [customerId, setCustomerId] = useState<string | null>(null);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
-  const [paymentMethods, setPaymentMethods] = useState<any[]>([]);
+  const [paymentMethods, setPaymentMethods] = useState<PaymentMethod[]>([]);
   const [addingCard, setAddingCard] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -91,14 +92,14 @@ export default function UserWallet() {
               <div className="flex justify-between">
                 <div>
                   <p className="text-sm font-semibold">
-                    •••• {pm.card.last4}
+                    •••• {pm.card?.last4}
                   </p>
                   <p className="text-xs text-gray-500">
-                    Expires {pm.card.exp_month}/{pm.card.exp_year}
+                    Expires {pm.card?.exp_month}/{pm.card?.exp_year}
                   </p>
                 </div>
                 <span className="uppercase text-gray-500 text-xs">
-                  {pm.card.brand}
+                  {pm.card?.brand}
                 </span>
               </div>
               <button
