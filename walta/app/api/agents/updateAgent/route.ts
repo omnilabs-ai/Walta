@@ -1,19 +1,26 @@
 import { updateAgent } from "@/app/service/supabase/agents";
 import { NextRequest, NextResponse } from "next/server";
+import { validateApiKey } from "@/app/service/supabase/lib/validate";
 
 export async function POST(request: NextRequest) {
   try {
-    const { agentId, updateData } = await request.json();
+    const userId = await validateApiKey(request.headers.get('authorization') ?? '')
+    
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
 
-    if (!agentId) {
+    const { agent_id, update_data } = await request.json();
+
+    if (!agent_id) {
       return NextResponse.json({ message: "Agent ID is required" }, { status: 400 });
     }
 
-    if (!updateData || Object.keys(updateData).length === 0) {
+    if (!update_data || Object.keys(update_data).length === 0) {
       return NextResponse.json({ message: "Update data is required" }, { status: 400 });
     }
 
-    const updatedAgent = await updateAgent(agentId, updateData);
+    const updatedAgent = await updateAgent(agent_id, update_data);
     return NextResponse.json(updatedAgent, { status: 200 });
     
   } catch (error: unknown) {

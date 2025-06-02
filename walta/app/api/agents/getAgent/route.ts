@@ -1,16 +1,23 @@
 import { NextRequest, NextResponse } from "next/server";
+// import { getAgents } from "@/app/service/supabase/agents";
+import { validateApiKey } from "@/app/service/supabase/lib/validate";
 import { getAgents } from "@/app/service/supabase/agents";
 
 export async function GET(request: NextRequest) {
-  // Extract parameters from the URL query string
-  const agentId = request.nextUrl.searchParams.get("agentId");
-  let data;
-
   try {
+    const userId = await validateApiKey(request.headers.get('authorization') ?? '')
+    
+    if (!userId) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const agentId = request.nextUrl.searchParams.get("agentId");
+    let data;
+  
     if (agentId) {
-      data = await getAgents(agentId);
+      data = await getAgents(userId, agentId);
     } else {
-      data = await getAgents();
+      data = await getAgents(userId);
     }
     return NextResponse.json(data, { status: 200 });
   

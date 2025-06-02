@@ -27,19 +27,25 @@ export default function ProtectedLayout({
     const supabase = createClient()
 
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       if (!session) {
         setCurrentUser(null)
         router.push("/login")
         return
       }
 
+      const userData = await fetch(`/api/user/getUser?userId=${session.user.id}`).then(res => res.json())
+
       setCurrentUser({
         uid: session.user.id,
         email: session.user.email || '',
         name: session.user.user_metadata?.name || '',
         mode: view || "developer",
+        api_key: userData.api_key || '',
+        stripe_vendor_id: userData.stripe_vendor_id || '',
+        stripe_customer_id: userData.stripe_customer_id || '',
       })
+
       setAuthChecked(true)
     })
 
@@ -54,11 +60,16 @@ export default function ProtectedLayout({
       }
 
       if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+        const userData = await fetch(`/api/user/getUser?userId=${session.user.id}`).then(res => res.json())
+        
         setCurrentUser({
           uid: session.user.id,
           email: session.user.email || '',
           name: session.user.user_metadata?.name || '',
           mode: view || "developer",
+          api_key: userData.api_key || '',
+          stripe_vendor_id: userData.stripe_vendor_id || '',
+          stripe_customer_id: userData.stripe_customer_id || '',
         })
       }
 

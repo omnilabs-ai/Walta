@@ -96,7 +96,6 @@ import {
 } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
-import { generateKeyPair } from "@/lib/crypto"
 
 export const schema = z.object({
   transaction_list: z.array(z.any()), // or a more specific schema if needed
@@ -110,14 +109,19 @@ export const schema = z.object({
 async function updateAgent({
   agentId,
   updatedFields,
+  currentUser,
 }: {
   agentId: string
   updatedFields: Partial<z.infer<typeof schema>>
+  currentUser: { api_key: string }
 }) {
   try {
     const res = await fetch("/api/agents/updateAgent", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { 
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${currentUser.api_key}`
+      },
       body: JSON.stringify({
         agentId,
         updatedFields,
@@ -261,15 +265,11 @@ export function AgentDataTable({ data }: AgentDataTableProps) {
       header: "Created At",
       cell: ({ row }) => {
         const createdAtRaw = row.original.created_at;
-        let date: Date | null = null;
-
-        if (createdAtRaw?.seconds) {
-          date = new Date(createdAtRaw.seconds * 1000);
-        }
+        const date = new Date(createdAtRaw);
 
         return (
           <span>
-            {date && !isNaN(date.getTime())
+            {!isNaN(date.getTime())
               ? date.toLocaleDateString()
               : "No date"}
           </span>
@@ -620,6 +620,7 @@ function AgentEditorDrawer({
     const success = await updateAgent({
       agentId: item.agent_id,
       updatedFields,
+      currentUser,
     })
 
     if (success) {
@@ -730,7 +731,10 @@ function DeleteAgentDialog({
     try {
       const res = await fetch("/api/agents/deleteAgent", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${currentUser.api_key}`
+        },
         body: JSON.stringify({
           agentId: item.agent_id,
         }),
@@ -810,14 +814,15 @@ function CreateAgentDialog() {
     setLoading(true);
 
     try {
-      const { publicKey, privateKey } = await generateKeyPair();
-      
+
       const res = await fetch("/api/agents/createAgent", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${currentUser.api_key}`
+        },
         body: JSON.stringify({
           agent_name: name.trim(),
-          publicKey: publicKey,
         }),
       });
 
@@ -827,7 +832,6 @@ function CreateAgentDialog() {
         return;
       }
       
-      alert(privateKey)
       toast.success("Agent created!");
       setOpen(false);
       setName("");

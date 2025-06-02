@@ -1,4 +1,4 @@
-import { createClient } from '@/app/service/supabase/server';
+import { supabaseAdmin } from '@/app/service/supabase/lib/supabaseAdmin'
 
 export interface User {
     email: string;
@@ -8,9 +8,8 @@ export interface User {
 }
 
 export async function createUser(user: User) {
-    const supabase = await createClient();
 
-    const { data, error } = await supabase.from('users').insert(user).select();
+    const { data, error } = await supabaseAdmin.from('users').insert(user).select();
 
     if (error) {
         throw new Error(error.message);
@@ -56,9 +55,8 @@ export async function createUser(user: User) {
 //   return data;
 // }
 export async function getUser(userId: string) {
-    const supabase = await createClient();
   
-    const { data, error } = await supabase
+    const { data, error } = await supabaseAdmin
       .from("users")
       .select("*")
       .eq("user_id", userId)

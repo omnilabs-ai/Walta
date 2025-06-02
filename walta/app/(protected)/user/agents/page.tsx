@@ -2,13 +2,13 @@
 
 import { useAtomValue } from "jotai";
 import { agentsAtom } from "@/app/atoms/settings";
-import { useAgentListener } from "@/hooks/useAgentListener";
+import { useRealtimeAgents } from "@/hooks/useRealtimeAgents";
 import { AgentDataTable } from "@/components/agent-data-table";
 
 export default function AgentTablePage() {
   const agentData = useAtomValue(agentsAtom);
-
-  useAgentListener(); // sets up the real-time listener
+  console.log(agentData);
+  useRealtimeAgents(); // sets up the real-time listener
 
   // if (!currentUser) {
   //   return (

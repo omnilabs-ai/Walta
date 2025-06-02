@@ -100,15 +100,20 @@ export async function updateProduct({
     userId,
     productId,
     updatedFields,
+    currentUser,
 }: {
     userId: string;
     productId: string;
     updatedFields: Partial<z.infer<typeof productSchema>>;
+    currentUser: { api_key: string };
 }) {
     try {
         const res = await fetch("/api/products/updateProduct", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: { 
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${currentUser.api_key}`
+            },
             body: JSON.stringify({
                 userId,
                 productId,
@@ -596,6 +601,7 @@ function ProductEditorDrawer({
             userId: currentUser.uid,
             productId: item.product_id,
             updatedFields,
+            currentUser,
         });
 
         if (success) {
@@ -712,7 +718,10 @@ function DeleteProductDialog({
       try {
         const res = await fetch("/api/products/deleteProduct", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { 
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${currentUser.api_key}`
+          },
           body: JSON.stringify({
             userId: currentUser.uid,
             productId: item.product_id,
@@ -800,13 +809,14 @@ function CreateProductDialog() {
         try {
             const res = await fetch("/api/products/createProduct", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: { 
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${currentUser.api_key}`
+                },
                 body: JSON.stringify({
                     name: name.trim(),
-                    description: description.trim(),
                     price: parseFloat(price) || 0,
-                    type: type.trim(),
-                    vendorName: vendorName.trim(),
+                    description: description.trim(),
                     metadata: {}
                 }),
             });

@@ -1,4 +1,4 @@
-import { createClient } from '@/app/service/supabase/server'
+import { supabaseAdmin } from '@/app/service/supabase/lib/supabaseAdmin'
 
 export interface Agent {
     id: string;
@@ -11,19 +11,18 @@ export interface Agent {
 
 export interface CreateAgentData {
     name: string;
-    public_key: string;
+    user_id: string;
 }
 
 export interface UpdateAgentData {
     active?: boolean;
 }
 
-export async function getAgents(agentId?: string): Promise<Agent | Agent[]> {
-    const supabase = await createClient()
-
-    let query = supabase
+export async function getAgents(userId: string, agentId?: string): Promise<Agent | Agent[]> {
+    let query = supabaseAdmin
         .from('agents')
         .select('*')
+        .eq('user_id', userId)
 
     if (agentId) {
         query = query.eq('id', agentId)
@@ -43,9 +42,7 @@ export async function getAgents(agentId?: string): Promise<Agent | Agent[]> {
 }
 
 export async function createAgent(data: CreateAgentData): Promise<Agent> {
-    const supabase = await createClient()
-
-    const { data: agent, error } = await supabase
+    const { data: agent, error } = await supabaseAdmin
         .from('agents')
         .insert(data)
         .select()
@@ -63,9 +60,7 @@ export async function createAgent(data: CreateAgentData): Promise<Agent> {
 }
 
 export async function updateAgent(agentId: string, updateData: UpdateAgentData): Promise<Agent> {
-    const supabase = await createClient()
-
-    const { data: agent, error } = await supabase
+    const { data: agent, error } = await supabaseAdmin
         .from('agents')
         .update(updateData)
         .eq('id', agentId)
@@ -77,16 +72,14 @@ export async function updateAgent(agentId: string, updateData: UpdateAgentData):
     }
 
     if (!agent) {
-        throw new Error(`Agent with id ${agentId} not found`)
+        throw new Error(`Agent with id ${agentId} not found or you don't have permission to update it`)
     }
 
     return agent
 }
 
 export async function deleteAgent(agentId: string): Promise<void> {
-    const supabase = await createClient()
-
-    const { error } = await supabase
+    const { error } = await supabaseAdmin
         .from('agents')
         .delete()
         .eq('id', agentId)

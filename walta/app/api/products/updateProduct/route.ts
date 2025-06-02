@@ -1,19 +1,26 @@
 import { NextRequest, NextResponse } from "next/server";
 import { updateProduct } from "@/app/service/supabase/products";
+import { validateApiKey } from "@/app/service/supabase/lib/validate";
 
 export async function POST(request: NextRequest) {
   try {
+    const user_id = await validateApiKey(request.headers.get('authorization') ?? '')
+
+    if (!user_id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const body = await request.json();
     
-    if (!body.productId || !body.updateData) {
+    if (!body.product_id || !body.update_data) {
       return NextResponse.json(
-        { error: "Missing required fields: productId and updateData are required" },
+        { error: "Missing required fields: product_id and update_data are required" },
         { status: 400 }
       );
     }
 
-    const { productId, updateData } = body;
-    const result = await updateProduct(productId, updateData);
+    const { product_id, update_data } = body;
+    const result = await updateProduct(product_id, update_data);
     
     return NextResponse.json(result, { status: 200 });
   } catch (error: unknown) {

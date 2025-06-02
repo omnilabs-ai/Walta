@@ -1,11 +1,12 @@
-import { createClient } from '@/app/service/supabase/server';
+import { supabaseAdmin } from '@/app/service/supabase/lib/supabaseAdmin'
 
 type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
 
 export interface Product {
     id: string;
+    user_id: string;
     created_at: string;
-    vendor_id: string;
+    stripe_vendor_id: string;
     name: string;
     price_cents: number;
     description: string | null;
@@ -13,7 +14,8 @@ export interface Product {
 }
 
 export interface CreateProductData {
-    vendor_id: string;
+    user_id: string;
+    stripe_vendor_id: string;
     name: string;
     price_cents: number;
     description?: string;
@@ -21,6 +23,7 @@ export interface CreateProductData {
 }
 
 export interface UpdateProductData {
+    product_id: string;
     name?: string;
     price_cents?: number;
     description?: string;
@@ -28,9 +31,8 @@ export interface UpdateProductData {
 }
 
 export async function createProduct(data: CreateProductData): Promise<Product> {
-    const supabase = await createClient();
-    
-    const { data: product, error } = await supabase
+
+    const { data: product, error } = await supabaseAdmin
         .from('products')
         .insert([data])
         .select()
@@ -40,57 +42,48 @@ export async function createProduct(data: CreateProductData): Promise<Product> {
     return product;
 }
 
-export async function getProduct(productId: string): Promise<Product> {
-    const supabase = await createClient();
-    
-    const { data: product, error } = await supabase
-        .from('products')
-        .select()
-        .eq('id', productId)
-        .single();
-
-    if (error) throw error;
-    return product;
-}
-
-export async function getProducts(vendorId?: string): Promise<Product[]> {
-    const supabase = await createClient();
-    
-    let query = supabase
+export async function getProducts(productId?: string): Promise<Product | Product[]> {
+    let query = supabaseAdmin
         .from('products')
         .select();
 
-    if (vendorId) {
-        query = query.eq('vendor_id', vendorId);
+    if (productId) {
+        query = query.eq('id', productId);
     }
 
-    const { data: products, error } = await query;
+    const { data, error } = await query;
 
-    if (error) throw error;
-    return products;
+    if (error) throw new Error(error.message);
+
+    if (productId) {
+        if (!data || data.length === 0) {
+            throw new Error('Product not found');
+        }
+        return data[0];
+    }
+
+    return data;
 }
 
 export async function updateProduct(productId: string, updateData: UpdateProductData): Promise<Product> {
-    const supabase = await createClient();
     
-    const { data: product, error } = await supabase
+    const { data: product, error } = await supabaseAdmin
         .from('products')
         .update(updateData)
         .eq('id', productId)
         .select()
         .single();
 
-    if (error) throw error;
+    if (error) throw new Error(error.message);
     return product;
 }
 
 export async function deleteProduct(productId: string): Promise<void> {
-    const supabase = await createClient();
     
-    const { error } = await supabase
+    const { error } = await supabaseAdmin
         .from('products')
         .delete()
         .eq('id', productId);
 
-    if (error) throw error;
+    if (error) throw new Error(error.message);
 }

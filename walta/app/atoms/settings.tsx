@@ -3,12 +3,14 @@ import { atomWithStorage } from 'jotai/utils'
 import { Timestamp } from "firebase/firestore";
 
 import { z } from "zod"
-import { schema } from "@/components/agent-data-table"
 
 export type DashboardView = "developer" | "vendor"
 
 export interface AppUser {
   uid: string
+  api_key: string
+  stripe_vendor_id: string
+  stripe_customer_id: string
   name: string
   email: string
   mode: string
@@ -51,6 +53,5 @@ export const currentUserAtom = atomWithStorage<AppUser | null>('currentUser', nu
 
 export const dashboardViewAtom = atomWithStorage<DashboardView>("dashboardView", "developer")
 
-export const agentListAtom = atom<z.infer<typeof schema>[]>([])
 export const transactionsAtom = atom<z.infer<typeof transactionSchema>[]>([]);
 export const productsAtom = atom<z.infer<typeof productSchema>[]>([])
