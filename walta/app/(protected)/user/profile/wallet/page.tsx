@@ -1,40 +1,5 @@
-"use client";
+import UserWallet from "./UserWallet";
 
-import { useEffect, useState } from "react";
-import CardSetupForm from "./cardSetupForm";
-import { currentUserAtom } from "@/app/atoms/settings";
-import { useAtomValue } from "jotai";
-
-export default function SetupPage() {
-  const [clientSecret, setClientSecret] = useState(null);
-  const currentUser = useAtomValue(currentUserAtom)
-
-  useEffect(() => {
-    fetch("/api/user/getUser?userId=" + currentUser?.uid + "&params=stripe_id")
-      .then((res) => res.json())
-      .then((data) => {
-        fetch("/api/stripe/createSetupIntent", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ customerId: data.stripe_id }),
-        })
-        .then((res) => res.json())
-        .then((data) => {
-          setClientSecret(data.clientSecret);
-        })
-        .catch((err) => {
-          console.log("err", err)
-        });
-      })
-  }, [currentUser?.uid]);
-
-  return (
-    <div className="p-[100px]">
-      {clientSecret ? (
-        <CardSetupForm clientSecret={clientSecret} />
-      ) : (
-        <p>Loading...</p>
-      )}
-    </div>
-  );
+export default function WalletPage() {
+  return <UserWallet />;
 }
