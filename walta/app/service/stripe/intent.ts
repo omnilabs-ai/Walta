@@ -16,4 +16,17 @@ const deletePaymentMethod = async (paymentMethodId: string) => {
   const detached = await stripe.paymentMethods.detach(paymentMethodId);
   return detached;
 };
-export { createSetupIntent, getCustomerPaymentMethods, deletePaymentMethod };
+
+const setDefaultPaymentMethod = async (
+  customerId: string,
+  paymentMethodId: string
+) => {
+  const updatedCustomer = await stripe.customers.update(customerId, {
+    invoice_settings: {
+      default_payment_method: paymentMethodId,
+    },
+  });
+  return updatedCustomer;
+};
+
+export { createSetupIntent, getCustomerPaymentMethods, deletePaymentMethod, setDefaultPaymentMethod};
