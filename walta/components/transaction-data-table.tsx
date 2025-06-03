@@ -78,19 +78,7 @@ import {
     Tabs,
     TabsContent,
 } from "@/components/ui/tabs"
-import { Timestamp } from "firebase/firestore"
-
-
-export const transactionSchema = z.object({
-    transaction_id: z.string(),
-    from_user_id: z.string(),
-    to_user_id: z.string(),
-    from_agent_id: z.string(),
-    amount: z.number(),
-    status: z.string(),
-    created_at: z.instanceof(Timestamp),
-    metadata: z.record(z.string()),
-});
+import { transactionSchema } from "@/app/atoms/settings"
 
 
 // Create a separate component for the drag handle
@@ -114,8 +102,6 @@ function DragHandle({ id }: { id: UniqueIdentifier }) {
         </Button>
     );
 }
-
-
 
 
 function DraggableRow({ row }: { row: Row<z.infer<typeof transactionSchema>> }) {
@@ -152,8 +138,6 @@ function DraggableRow({ row }: { row: Row<z.infer<typeof transactionSchema>> }) 
 }
 
 
-
-
 interface TransactionDataTableProps {
     data: z.infer<typeof transactionSchema>[]; // only the data prop now
 }
@@ -173,7 +157,7 @@ export function TransactionDataTable({ data }: TransactionDataTableProps) {
         []
     )
     const [sorting, setSorting] = React.useState<SortingState>([
-        { id: "created_at", desc: true },
+        { id: "timestamp", desc: true },
     ])
     const [pagination, setPagination] = React.useState({
         pageIndex: 0,
@@ -219,17 +203,16 @@ export function TransactionDataTable({ data }: TransactionDataTableProps) {
             enableHiding: false,
         },
         {
-            accessorKey: "created_at",
+            accessorKey: "timestamp",
             header: "Created At",
             cell: ({ row }) => {
-                const createdAtRaw = row.original.created_at;
+                console.log(row.original);
+                const createdAtRaw = row.original.timestamp;
                 let date: Date | null = null;
 
-
-                if (createdAtRaw?.seconds) {
-                    date = new Date(createdAtRaw.seconds * 1000);
+                if (createdAtRaw) {
+                    date = new Date(createdAtRaw);
                 }
-
 
                 return (
                     <span>
@@ -241,33 +224,53 @@ export function TransactionDataTable({ data }: TransactionDataTableProps) {
             }
         },
         {
-            accessorKey: "transaction_id",
+            accessorKey: "id",
             header: "Transaction ID",
             cell: ({ row }) => {
+                const transactionId = row.original.id || "";
+                const visiblePart = transactionId.length > 8
+                    ? transactionId.substring(0, 8) + "•••"
+                    : transactionId;
+
+                const handleCopy = () => {
+                    navigator.clipboard.writeText(transactionId).then(() => {
+                        toast.success("Transaction ID copied to clipboard");
+                    });
+                };
+
                 return (
-                    <div className="text-foreground w-fit px-0 text-left font-medium">
-                        {row.original.transaction_id}
+                    <div className="flex items-center gap-1 w-32 truncate">
+                        <Badge variant="outline" className="text-muted-foreground px-1.5">
+                            {visiblePart}
+                        </Badge>
+                        <Button
+                            type="button"
+                            size="icon"
+                            variant="ghost"
+                            className="h-6 w-6 p-1"
+                            onClick={handleCopy}
+                        >
+                            <IconClipboardCopy className="h-4 w-4 text-muted-foreground" />
+                        </Button>
                     </div>
                 );
             },
             enableHiding: false,
         },
         {
-            accessorKey: "from_agent_id",
+            accessorKey: "agent_id",
             header: "Agent ID",
             cell: ({ row }) => {
-                const agentID: string = row.original.from_agent_id;
+                const agentID: string = row.original.agent_id;
                 const visiblePart = agentID.length > 6
                     ? agentID.substring(0, 6) + "•••••••"
                     : agentID;
 
-
                 const handleCopy = () => {
                     navigator.clipboard.writeText(agentID).then(() => {
-                        toast.success("API key copied to clipboard");
+                        toast.success("Agent ID copied to clipboard");
                     });
                 };
-
 
                 return (
                     <div className="flex items-center gap-1 w-32 truncate">
@@ -288,6 +291,19 @@ export function TransactionDataTable({ data }: TransactionDataTableProps) {
             },
         },
         {
+            accessorKey: "amount_cents",
+            header: "Amount",
+            cell: ({ row }) => {
+                const amount = row.original.amount_cents;
+                const formattedAmount = (amount / 100).toFixed(2);
+                return (
+                    <span className="font-medium">
+                        ${formattedAmount}
+                    </span>
+                );
+            },
+        },
+        {
             accessorKey: "status",
             header: "Status",
             cell: ({ row }) => (
@@ -304,6 +320,22 @@ export function TransactionDataTable({ data }: TransactionDataTableProps) {
             ),
         },
         {
+            accessorKey: "product_id",
+            header: "Product ID",
+            cell: ({ row }) => {
+                const productId = row.original.product_id;
+                const visiblePart = productId.length > 8
+                    ? productId.substring(0, 8) + "••••"
+                    : productId;
+
+                return (
+                    <Badge variant="secondary" className="text-muted-foreground px-1.5">
+                        {visiblePart}
+                    </Badge>
+                );
+            },
+        },
+        {
             accessorKey: "metadata",
             header: "Metadata",
             cell: ({ row }) => (
@@ -316,12 +348,11 @@ export function TransactionDataTable({ data }: TransactionDataTableProps) {
         },
     ]
 
-
     const table = useReactTable({
         data: localData,
         columns,
         state: { sorting, pagination, rowSelection, columnFilters, columnVisibility },
-        getRowId: (row) => row.created_at.seconds.toString() + row.created_at.nanoseconds.toString(),
+        getRowId: (row) => row.id || Math.random().toString(),
         enableRowSelection: true,
         onRowSelectionChange: setRowSelection,
         onSortingChange: setSorting,
@@ -336,29 +367,24 @@ export function TransactionDataTable({ data }: TransactionDataTableProps) {
         getFacetedUniqueValues: getFacetedUniqueValues(),
     })
 
-
     function handleDragEnd(event: DragEndEvent) {
         const { active, over } = event;
 
-
         if (active && over && active.id !== over.id) {
             setLocalData((prevData) => {
-                const oldIndex = prevData.findIndex(item => item.created_at.seconds.toString() === active.id);
-                const newIndex = prevData.findIndex(item => item.created_at.seconds.toString() === over.id);
-
+                const oldIndex = prevData.findIndex(item => (item.id || Math.random().toString()) === active.id);
+                const newIndex = prevData.findIndex(item => (item.id || Math.random().toString()) === over.id);
 
                 if (oldIndex === -1 || newIndex === -1) {
                     console.error("Could not find indices for drag items");
                     return prevData;
                 }
 
-
                 const newData = arrayMove(prevData, oldIndex, newIndex);
                 return newData;
             });
         }
     }
-
 
     return (
         <Tabs

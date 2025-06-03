@@ -25,15 +25,17 @@ export const agentSchema = z.object({
   created_at: z.any(),
 })
 
+// Supabase transaction schema
 export const transactionSchema = z.object({
-  transaction_id: z.string(),
-  from_user_id: z.string(),
-  to_user_id: z.string(),
-  from_agent_id: z.string(),
-  amount: z.number(),
+  id: z.string().optional(),
+  agent_id: z.string(),
+  vendor_id: z.string(),
+  product_id: z.string(),
+  customer_id: z.string(),
+  amount_cents: z.number(),
   status: z.string(),
-  created_at: z.instanceof(Timestamp),
   metadata: z.record(z.string()),
+  timestamp: z.string(),
 });
 
 export const productSchema = z.object({
