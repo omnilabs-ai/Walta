@@ -4,14 +4,14 @@
 import { useAtomValue } from "jotai";
 import { currentUserAtom } from "@/app/atoms/settings";
 import { transactionsAtom } from "@/app/atoms/settings";
-import { useTransactionListener } from "@/hooks/useTransactionListener";
+import { useRealtimeTransactions } from "@/hooks/useRealtimeTransactions";
 import { TransactionDataTable } from "@/components/transaction-data-table";
 
 
 export default function TransactionTablePage() {
     const currentUser = useAtomValue(currentUserAtom);
     const transactions = useAtomValue(transactionsAtom);
-    useTransactionListener(currentUser?.uid);
+    useRealtimeTransactions(currentUser?.stripe_vendor_id);
 
 
     if (!currentUser) {
