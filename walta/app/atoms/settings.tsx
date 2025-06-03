@@ -18,9 +18,9 @@ export interface AppUser {
 
 export const agentSchema = z.object({
   transaction_list: z.array(z.any()),
-  agent_id: z.string(),
-  agent_name: z.string(),
-  apiKey: z.string(),
+  id: z.string(),
+  name: z.string(),
+  agent_key: z.string(),
   active: z.boolean(),
   created_at: z.any(),
 })
