@@ -12,13 +12,11 @@ import {
   useSensor,
   useSensors,
   MeasuringStrategy,  // Add this import
-  type DragEndEvent,
   type UniqueIdentifier,
 } from "@dnd-kit/core"
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers"
 import {
   SortableContext,
-  arrayMove,
   useSortable,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable"
@@ -96,12 +94,13 @@ import {
 } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
 import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
+import { memo, useMemo, useCallback } from 'react';
 
 export const schema = z.object({
-  transaction_list: z.array(z.any()), // or a more specific schema if needed
-  agent_id: z.string(),
-  agent_name: z.string(),
-  apiKey: z.string(),
+  transaction_list: z.array(z.any()),
+  id: z.string(),
+  name: z.string(),
+  agent_key: z.string(),
   active: z.boolean(),
   created_at: z.any(),
 })
@@ -118,31 +117,32 @@ async function updateAgent({
   try {
     const res = await fetch("/api/agents/updateAgent", {
       method: "POST",
-      headers: { 
+      headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${currentUser.api_key}`
       },
       body: JSON.stringify({
-        agentId,
-        updatedFields,
+        id: agentId,
+        update_data: updatedFields,
       }),
     });
 
-    const json = await res.json()
+    const json = await res.json();
 
     if (!res.ok) {
-      toast.error("Update failed: " + json.error)
-      return false
+      toast.error("Update failed: " + json.error || json.message);
+      return false;
     }
 
-    toast.success("Agent updated successfully!")
-    return true
+    toast.success("Agent updated successfully!");
+    return true;
   } catch (err) {
-    console.error("Error updating agent:", err)
-    toast.error("Unexpected error updating agent")
-    return false
+    console.error("Error updating agent:", err);
+    toast.error("Unexpected error updating agent");
+    return false;
   }
 }
+
 
 // Create a separate component for the drag handle
 function DragHandle({ id }: { id: UniqueIdentifier }) {
@@ -166,7 +166,7 @@ function DragHandle({ id }: { id: UniqueIdentifier }) {
 }
 
 
-function DraggableRow({ row }: { row: Row<z.infer<typeof schema>> }) {
+const DraggableRow = memo(({ row }: { row: Row<z.infer<typeof schema>> }) => {
   const {
     setNodeRef,
     attributes,
@@ -196,7 +196,9 @@ function DraggableRow({ row }: { row: Row<z.infer<typeof schema>> }) {
       ))}
     </TableRow>
   );
-}
+});
+
+DraggableRow.displayName = 'DraggableRow';
 
 
 interface AgentDataTableProps {
@@ -204,31 +206,22 @@ interface AgentDataTableProps {
 }
 
 export function AgentDataTable({ data }: AgentDataTableProps) {
-  const [localData, setLocalData] = React.useState<z.infer<typeof schema>[]>(data);
-
-  React.useEffect(() => {
-    setLocalData(data);
-  }, [data]);
-  const [rowSelection, setRowSelection] = React.useState({})
-  const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({})
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
-  )
+  console.count("🔄 AgentDataTable rendered");
+  const [rowSelection, setRowSelection] = React.useState({});
+  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
+  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "created_at", desc: true },
-  ])
+  ]);
   const [pagination, setPagination] = React.useState({
     pageIndex: 0,
     pageSize: 10,
-  })
-  const sensors = useSensors(
-    useSensor(MouseSensor, {}),
-    useSensor(TouchSensor, {}),
-    useSensor(KeyboardSensor, {})
-  )
+  });
 
-  const columns: ColumnDef<z.infer<typeof schema>>[] = [
+  // ✅ Then all useCallback / useMemo in consistent order
+  const getRowId = useCallback((row: z.infer<typeof schema>) => row.id, []);
+
+  const columns: ColumnDef<z.infer<typeof schema>>[] = useMemo(() => [
     {
       id: "drag",
       header: () => null,
@@ -293,7 +286,7 @@ export function AgentDataTable({ data }: AgentDataTableProps) {
       accessorKey: "api_key",
       header: "API Key",
       cell: ({ row }) => {
-        const apiKey: string = row.original.apiKey;
+        const apiKey: string = row.original.agent_key;
         const visiblePart = apiKey.startsWith("walta-")
           ? "walta-" + "••••••••"
           : "••••••••";
@@ -347,13 +340,19 @@ export function AgentDataTable({ data }: AgentDataTableProps) {
       id: "actions",
       cell: ({ row }) => <ActionCell row={row} />,
     }
-  ]
+  ], []);
+
+  const mouseSensor = useSensor(MouseSensor, {});
+  const touchSensor = useSensor(TouchSensor, {});
+  const keyboardSensor = useSensor(KeyboardSensor, {});
+
+  const sensors = useSensors(mouseSensor, touchSensor, keyboardSensor);
 
   const table = useReactTable({
-    data: localData,
+    data: data,
     columns,
     state: { sorting, pagination, rowSelection, columnFilters, columnVisibility },
-    getRowId: (row) => row.agent_id,
+    getRowId,
     enableRowSelection: true,
     onRowSelectionChange: setRowSelection,
     onSortingChange: setSorting,
@@ -366,31 +365,38 @@ export function AgentDataTable({ data }: AgentDataTableProps) {
     getSortedRowModel: getSortedRowModel(),
     getFacetedRowModel: getFacetedRowModel(),
     getFacetedUniqueValues: getFacetedUniqueValues(),
-  })
+  });
 
-  function handleDragEnd(event: DragEndEvent) {
-    const { active, over } = event;
+  // Memoize row IDs for SortableContext
+  const tableRows = table.getRowModel().rows;
 
-    console.log("Drag end:", { active, over });
+  const rowIds = useMemo(() => {
+    return tableRows.map((row) => row.id);
+  }, [tableRows]);
 
-    if (active && over && active.id !== over.id) {
-      setLocalData((prevData) => {
-        const oldIndex = prevData.findIndex(item => item.agent_id === active.id);
-        const newIndex = prevData.findIndex(item => item.agent_id === over.id);
+  // function handleDragEnd(event: DragEndEvent) {
+  //   const { active, over } = event;
 
-        console.log("Indices:", { oldIndex, newIndex });
+  //   console.log("Drag end:", { active, over });
 
-        if (oldIndex === -1 || newIndex === -1) {
-          console.error("Could not find indices for drag items");
-          return prevData;
-        }
+  //   if (active && over && active.id !== over.id) {
+  //     setLocalData((prevData) => {
+  //       const oldIndex = prevData.findIndex(item => item.id === active.id);
+  //       const newIndex = prevData.findIndex(item => item.id === over.id);
 
-        const newData = arrayMove(prevData, oldIndex, newIndex);
-        console.log("Data after move:", newData.map(d => d.agent_name));
-        return newData;
-      });
-    }
-  }
+  //       console.log("Indices:", { oldIndex, newIndex });
+
+  //       if (oldIndex === -1 || newIndex === -1) {
+  //         console.error("Could not find indices for drag items");
+  //         return prevData;
+  //       }
+
+  //       const newData = arrayMove(prevData, oldIndex, newIndex);
+  //       console.log("Data after move:", newData.map(d => d.name));
+  //       return newData;
+  //     });
+  //   }
+  // }
 
   return (
     <Tabs
@@ -446,7 +452,6 @@ export function AgentDataTable({ data }: AgentDataTableProps) {
           <DndContext
             collisionDetection={closestCenter}
             modifiers={[restrictToVerticalAxis]}
-            onDragEnd={handleDragEnd}
             sensors={sensors}
             measuring={{
               droppable: {
@@ -476,7 +481,7 @@ export function AgentDataTable({ data }: AgentDataTableProps) {
               <TableBody className="**:data-[slot=table-cell]:first:w-8">
                 {table.getRowModel().rows?.length ? (
                   <SortableContext
-                    items={table.getRowModel().rows.map(row => row.id)}
+                    items={rowIds}
                     strategy={verticalListSortingStrategy}
                   >
                     {table.getRowModel().rows.map((row) => (
@@ -606,19 +611,19 @@ function AgentEditorDrawer({
   const isMobile = useIsMobile()
   const currentUser = useAtomValue(currentUserAtom)
   const [open, setOpen] = React.useState(false)
-  const [agentName, setAgentName] = React.useState(item.agent_name)
+  const [agentName, setAgentName] = React.useState(item.name)
   const [status, setStatus] = React.useState(item.active ? "active" : "inactive")
 
   const handleSubmit = async () => {
     if (!currentUser) return
 
     const updatedFields = {
-      agent_name: agentName,
+      name: agentName,
       active: status === "active",
     }
 
     const success = await updateAgent({
-      agentId: item.agent_id,
+      agentId: item.id,
       updatedFields,
       currentUser,
     })
@@ -641,13 +646,13 @@ function AgentEditorDrawer({
       {triggerFromName && (
         <DrawerTrigger asChild>
           <Button variant="link" className="text-foreground w-fit px-0 text-left">
-            {item.agent_name}
+            {item.name}
           </Button>
         </DrawerTrigger>
       )}
       <DrawerContent>
         <DrawerHeader className="gap-1">
-          <DrawerTitle>{item.agent_name}</DrawerTitle>
+          <DrawerTitle>{item.name}</DrawerTitle>
           <DrawerDescription>Agent configuration and API info</DrawerDescription>
         </DrawerHeader>
 
@@ -670,7 +675,7 @@ function AgentEditorDrawer({
 
             <div className="flex flex-col gap-3">
               <Label htmlFor="api_key">API Key</Label>
-              <Input id="api_key" value={item.apiKey} readOnly />
+              <Input id="api_key" value={item.agent_key} readOnly />
             </div>
 
             <div className="flex flex-col gap-3">
@@ -712,7 +717,7 @@ function AgentEditorDrawer({
   )
 }
 
-function DeleteAgentDialog({
+export function DeleteAgentDialog({
   item,
   children,
 }: {
@@ -731,14 +736,14 @@ function DeleteAgentDialog({
     try {
       const res = await fetch("/api/agents/deleteAgent", {
         method: "POST",
-        headers: { 
+        headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${currentUser.api_key}`
         },
         body: JSON.stringify({
-          agentId: item.agent_id,
+          agent_id: item.id,
         }),
-      });
+      })
 
       const json = await res.json()
       if (!res.ok) {
@@ -746,10 +751,8 @@ function DeleteAgentDialog({
         return
       }
 
-      if (res.ok) {
-        toast.success("Agent deleted successfully");
-        setOpen(false);
-      }
+      toast.success("Agent deleted successfully")
+      setOpen(false)
     } catch (err) {
       console.error("Delete agent error:", err)
       toast.error("Unexpected error deleting agent")
@@ -759,47 +762,41 @@ function DeleteAgentDialog({
   }
 
   return (
-    <>
-      <div
-        onClick={() => setOpen(true)}
-        className="cursor-pointer px-2 py-1.5 text-sm text-red-600 hover:bg-red-100 rounded-sm"
-      >
-        Delete
-      </div>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        {children}
+      </DialogTrigger>
 
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Confirm Delete</DialogTitle>
-            <DialogDescription>
-              This will permanently remove <strong>{item.agent_name}</strong>.
-              <br />
-              Type the agent name below to confirm:
-            </DialogDescription>
-          </DialogHeader>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Confirm Delete</DialogTitle>
+          <DialogDescription>
+            This will permanently remove <strong>{item.name}</strong>.
+            <br />
+            Type the agent name below to confirm:
+          </DialogDescription>
+        </DialogHeader>
 
-          <Input
-            placeholder="Enter agent name"
-            value={confirmInput}
-            onChange={(e) => setConfirmInput(e.target.value)}
-          />
+        <Input
+          placeholder="Enter agent name"
+          value={confirmInput}
+          onChange={(e) => setConfirmInput(e.target.value)}
+        />
 
-          <DialogFooter>
-            <Button
-              variant="destructive"
-              disabled={confirmInput !== item.agent_name || loading}
-              onClick={handleDelete}
-            >
-              {loading ? "Deleting..." : "Confirm Delete"}
-            </Button>
-            <Button variant="outline" onClick={() => setOpen(false)}>
-              Cancel
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-      {children}
-    </>
+        <DialogFooter>
+          <Button
+            variant="destructive"
+            disabled={confirmInput !== item.name || loading}
+            onClick={handleDelete}
+          >
+            {loading ? "Deleting..." : "Confirm Delete"}
+          </Button>
+          <Button variant="outline" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }
 
@@ -817,7 +814,7 @@ function CreateAgentDialog() {
 
       const res = await fetch("/api/agents/createAgent", {
         method: "POST",
-        headers: { 
+        headers: {
           "Content-Type": "application/json",
           "Authorization": `Bearer ${currentUser.api_key}`
         },
@@ -831,7 +828,7 @@ function CreateAgentDialog() {
         toast.error("Failed to create agent: " + json.error);
         return;
       }
-      
+
       toast.success("Agent created!");
       setOpen(false);
       setName("");
@@ -901,7 +898,9 @@ function ActionCell({ row }: { row: Row<z.infer<typeof schema>> }) {
           <DeleteAgentDialog
             item={item}
           >
-            <DropdownMenuItem className="text-red-600">Delete</DropdownMenuItem>
+            <div className="text-red-600 cursor-pointer px-2 py-1.5 text-sm hover:bg-red-100 rounded-sm">
+              Delete
+            </div>
           </DeleteAgentDialog>
         </DropdownMenuContent>
       </DropdownMenu>

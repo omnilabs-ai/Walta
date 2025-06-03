@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { useState } from "react"
+import { memo, useMemo, useCallback } from 'react';
 import { useAtomValue } from "jotai"
 import { currentUserAtom } from "@/app/atoms/settings"
 import {
@@ -13,13 +14,11 @@ import {
     useSensor,
     useSensors,
     MeasuringStrategy,  // Add this import
-    type DragEndEvent,
     type UniqueIdentifier,
 } from "@dnd-kit/core"
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers"
 import {
     SortableContext,
-    arrayMove,
     useSortable,
     verticalListSortingStrategy,
 } from "@dnd-kit/sortable"
@@ -97,7 +96,6 @@ import { Dialog, DialogTrigger, DialogContent, DialogHeader, DialogTitle, Dialog
 import { productSchema } from "@/app/atoms/settings"
 
 export async function updateProduct({
-    userId,
     productId,
     updatedFields,
     currentUser,
@@ -110,14 +108,13 @@ export async function updateProduct({
     try {
         const res = await fetch("/api/products/updateProduct", {
             method: "POST",
-            headers: { 
+            headers: {
                 "Content-Type": "application/json",
                 "Authorization": `Bearer ${currentUser.api_key}`
             },
             body: JSON.stringify({
-                userId,
-                productId,
-                updatedFields,
+                product_id: productId,
+                update_data: updatedFields,
             }),
         });
 
@@ -159,15 +156,8 @@ function DragHandle({ id }: { id: UniqueIdentifier }) {
 }
 
 
-function DraggableRow({ row }: { row: Row<z.infer<typeof productSchema>> }) {
-    const {
-        setNodeRef,
-        attributes,
-        listeners,
-        transform,
-        transition,
-        isDragging,
-    } = useSortable({ id: row.id });
+const DraggableRow = memo(function DraggableRow({ row }: { row: Row<z.infer<typeof productSchema>> }) {
+    const { setNodeRef, attributes, listeners, transform, transition, isDragging } = useSortable({ id: row.original.product_id });
 
     return (
         <TableRow
@@ -189,7 +179,7 @@ function DraggableRow({ row }: { row: Row<z.infer<typeof productSchema>> }) {
             ))}
         </TableRow>
     );
-}
+})
 
 
 interface ProductDataTableProps {
@@ -197,11 +187,6 @@ interface ProductDataTableProps {
 }
 
 export function ProductDataTable({ data }: ProductDataTableProps) {
-    const [localData, setLocalData] = React.useState<z.infer<typeof productSchema>[]>(data);
-
-    React.useEffect(() => {
-        setLocalData(data);
-    }, [data]);
     const [rowSelection, setRowSelection] = React.useState({})
     const [columnVisibility, setColumnVisibility] =
         React.useState<VisibilityState>({})
@@ -215,13 +200,9 @@ export function ProductDataTable({ data }: ProductDataTableProps) {
         pageIndex: 0,
         pageSize: 10,
     })
-    const sensors = useSensors(
-        useSensor(MouseSensor, {}),
-        useSensor(TouchSensor, {}),
-        useSensor(KeyboardSensor, {})
-    )
+    const getRowId = useCallback((row: z.infer<typeof productSchema>) => row.product_id, []);
 
-    const columns: ColumnDef<z.infer<typeof productSchema>>[] = [
+    const columns: ColumnDef<z.infer<typeof productSchema>>[] = useMemo(() => [
         {
             id: "drag",
             header: () => null,
@@ -287,13 +268,6 @@ export function ProductDataTable({ data }: ProductDataTableProps) {
             enableHiding: false,
         },
         {
-            accessorKey: "vendorName",
-            header: "Vendor",
-            cell: ({ row }) => (
-                <div className="truncate max-w-[150px]">{row.original.vendorName}</div>
-            ),
-        },
-        {
             accessorKey: "type",
             header: "Type",
             cell: ({ row }) => (
@@ -320,13 +294,19 @@ export function ProductDataTable({ data }: ProductDataTableProps) {
             id: "actions",
             cell: ({ row }) => <ActionsCell row={row} />,
         }
-    ]
+    ], [])
+
+    const mouseSensor = useSensor(MouseSensor, {});
+    const touchSensor = useSensor(TouchSensor, {});
+    const keyboardSensor = useSensor(KeyboardSensor, {});
+
+    const sensors = useSensors(mouseSensor, touchSensor, keyboardSensor);
 
     const table = useReactTable({
-        data: localData,
+        data: data,
         columns,
         state: { sorting, pagination, rowSelection, columnFilters, columnVisibility },
-        getRowId: (row) => row.product_id,
+        getRowId,
         enableRowSelection: true,
         onRowSelectionChange: setRowSelection,
         onSortingChange: setSorting,
@@ -341,29 +321,35 @@ export function ProductDataTable({ data }: ProductDataTableProps) {
         getFacetedUniqueValues: getFacetedUniqueValues(),
     })
 
-    function handleDragEnd(event: DragEndEvent) {
-        const { active, over } = event;
+    const tableRows = table.getRowModel().rows;
 
-        console.log("Drag end:", { active, over });
+    const rowIds = useMemo(() => {
+        return tableRows.map((row) => row.id);
+    }, [tableRows]);
 
-        if (active && over && active.id !== over.id) {
-            setLocalData((prevData) => {
-                const oldIndex = prevData.findIndex(item => item.product_id === active.id);
-                const newIndex = prevData.findIndex(item => item.product_id === over.id);
+    // function handleDragEnd(event: DragEndEvent) {
+    //     const { active, over } = event;
 
-                console.log("Indices:", { oldIndex, newIndex });
+    //     console.log("Drag end:", { active, over });
 
-                if (oldIndex === -1 || newIndex === -1) {
-                    console.error("Could not find indices for drag items");
-                    return prevData;
-                }
+    //     if (active && over && active.id !== over.id) {
+    //         setLocalData((prevData) => {
+    //             const oldIndex = prevData.findIndex(item => item.product_id === active.id);
+    //             const newIndex = prevData.findIndex(item => item.product_id === over.id);
 
-                const newData = arrayMove(prevData, oldIndex, newIndex);
-                console.log("Data after move:", newData.map(d => d.name));
-                return newData;
-            });
-        }
-    }
+    //             console.log("Indices:", { oldIndex, newIndex });
+
+    //             if (oldIndex === -1 || newIndex === -1) {
+    //                 console.error("Could not find indices for drag items");
+    //                 return prevData;
+    //             }
+
+    //             const newData = arrayMove(prevData, oldIndex, newIndex);
+    //             console.log("Data after move:", newData.map(d => d.name));
+    //             return newData;
+    //         });
+    //     }
+    // }
 
     return (
         <Tabs
@@ -419,7 +405,6 @@ export function ProductDataTable({ data }: ProductDataTableProps) {
                     <DndContext
                         collisionDetection={closestCenter}
                         modifiers={[restrictToVerticalAxis]}
-                        onDragEnd={handleDragEnd}
                         sensors={sensors}
                         measuring={{
                             droppable: {
@@ -449,7 +434,7 @@ export function ProductDataTable({ data }: ProductDataTableProps) {
                             <TableBody className="**:data-[slot=table-cell]:first:w-8">
                                 {table.getRowModel().rows?.length ? (
                                     <SortableContext
-                                        items={table.getRowModel().rows.map(row => row.id)}
+                                        items={rowIds}
                                         strategy={verticalListSortingStrategy}
                                     >
                                         {table.getRowModel().rows.map((row) => (
@@ -583,7 +568,6 @@ function ProductEditorDrawer({
     const [name, setName] = React.useState(item.name);
     const [description, setDescription] = React.useState(item.description);
     const [type, setType] = React.useState(item.type);
-    const [vendorName, setVendorName] = React.useState(item.vendorName);
     const [price, setPrice] = React.useState(item.price.toString());
 
     const handleSubmit = async () => {
@@ -593,7 +577,6 @@ function ProductEditorDrawer({
             name,
             description,
             type,
-            vendorName,
             price: parseFloat(price) || 0, // ensure price is a number
         };
 
@@ -649,15 +632,6 @@ function ProductEditorDrawer({
                         </div>
 
                         <div className="flex flex-col gap-3">
-                            <Label htmlFor="vendorName">Vendor Name</Label>
-                            <Input
-                                id="vendorName"
-                                value={vendorName}
-                                onChange={(e) => setVendorName(e.target.value)}
-                            />
-                        </div>
-
-                        <div className="flex flex-col gap-3">
                             <Label htmlFor="type">Type</Label>
                             <Input
                                 id="type"
@@ -699,96 +673,89 @@ function ProductEditorDrawer({
     );
 }
 
-function DeleteProductDialog({
+export function DeleteProductDialog({
     item,
     children,
-  }: {
+}: {
     item: z.infer<typeof productSchema>;
     children: React.ReactNode;
-  }) {
-    const currentUser = useAtomValue(currentUserAtom)
-    const [open, setOpen] = React.useState(false)
-    const [confirmInput, setConfirmInput] = React.useState("")
-    const [loading, setLoading] = React.useState(false)
-  
+}) {
+    const currentUser = useAtomValue(currentUserAtom);
+    const [open, setOpen] = React.useState(false);
+    const [confirmInput, setConfirmInput] = React.useState("");
+    const [loading, setLoading] = React.useState(false);
+
     const handleDelete = async () => {
-      if (!currentUser) return
-      setLoading(true)
-  
-      try {
-        const res = await fetch("/api/products/deleteProduct", {
-          method: "POST",
-          headers: { 
-            "Content-Type": "application/json",
-            "Authorization": `Bearer ${currentUser.api_key}`
-          },
-          body: JSON.stringify({
-            userId: currentUser.uid,
-            productId: item.product_id,
-          }),
-        });
-  
-        const json = await res.json()
-        if (!res.ok) {
-          toast.error("Failed to delete product: " + json.error)
-          return
+        if (!currentUser) return;
+        setLoading(true);
+
+        try {
+            const res = await fetch("/api/products/deleteProduct", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${currentUser.api_key}`,
+                },
+                body: JSON.stringify({
+                    product_id: item.product_id,
+                }),
+            });
+
+            const json = await res.json();
+            if (!res.ok) {
+                toast.error("Failed to delete product: " + json.error);
+                return;
+            }
+
+            toast.success("Product deleted successfully");
+            setOpen(false);
+        } catch (err) {
+            console.error("Delete product error:", err);
+            toast.error("Unexpected error deleting product");
+        } finally {
+            setLoading(false);
         }
-  
-        if (res.ok) {
-          toast.success("Product deleted successfully");
-          setOpen(false);
-        }
-      } catch (err: unknown) {
-        console.error(err);
-        toast.error("Unexpected error deleting product")
-      } finally {
-        setLoading(false)
-      }
-    }
-  
+    };
+
     return (
-      <>
-        <div
-          onClick={() => setOpen(true)}
-          className="cursor-pointer px-2 py-1.5 text-sm text-red-600 hover:bg-red-100 rounded-sm"
-        >
-          {children}
-        </div>
-  
         <Dialog open={open} onOpenChange={setOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Confirm Delete</DialogTitle>
-              <DialogDescription>
-                This will permanently remove <strong>{item.name}</strong>.
-                <br />
-                Type the product name below to confirm:
-              </DialogDescription>
-            </DialogHeader>
-  
-            <Input
-              placeholder="Enter product name"
-              value={confirmInput}
-              onChange={(e) => setConfirmInput(e.target.value)}
-            />
-  
-            <DialogFooter>
-              <Button
-                variant="destructive"
-                disabled={confirmInput !== item.name || loading}
-                onClick={handleDelete}
-              >
-                {loading ? "Deleting..." : "Confirm Delete"}
-              </Button>
-              <Button variant="outline" onClick={() => setOpen(false)}>
-                Cancel
-              </Button>
-            </DialogFooter>
-          </DialogContent>
+            <DialogTrigger asChild>
+                {children}
+            </DialogTrigger>
+
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Confirm Delete</DialogTitle>
+                    <DialogDescription>
+                        This will permanently remove <strong>{item.name}</strong>.
+                        <br />
+                        Type the product name below to confirm:
+                    </DialogDescription>
+                </DialogHeader>
+
+                <Input
+                    placeholder="Enter product name"
+                    value={confirmInput}
+                    onChange={(e) => setConfirmInput(e.target.value)}
+                />
+
+                <DialogFooter>
+                    <Button
+                        variant="destructive"
+                        disabled={confirmInput !== item.name || loading}
+                        onClick={handleDelete}
+                    >
+                        {loading ? "Deleting..." : "Confirm Delete"}
+                    </Button>
+                    <Button variant="outline" onClick={() => setOpen(false)}>
+                        Cancel
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
         </Dialog>
-      </>
-    )
-  }
+    );
+}
+
 
 
 function CreateProductDialog() {
@@ -798,7 +765,6 @@ function CreateProductDialog() {
     const [name, setName] = useState("");
     const [description, setDescription] = useState("");
     const [type, setType] = useState("");
-    const [vendorName, setVendorName] = useState("");
     const [price, setPrice] = useState("");
     const [loading, setLoading] = useState(false);
 
@@ -809,7 +775,7 @@ function CreateProductDialog() {
         try {
             const res = await fetch("/api/products/createProduct", {
                 method: "POST",
-                headers: { 
+                headers: {
                     "Content-Type": "application/json",
                     "Authorization": `Bearer ${currentUser.api_key}`
                 },
@@ -817,6 +783,7 @@ function CreateProductDialog() {
                     name: name.trim(),
                     price: parseFloat(price) || 0,
                     description: description.trim(),
+                    type: type.trim(),
                     metadata: {}
                 }),
             });
@@ -833,7 +800,6 @@ function CreateProductDialog() {
             setDescription("");
             setPrice("");
             setType("");
-            setVendorName("");
         } catch (err) {
             console.error(err);
             toast.error("Unexpected error creating product");
@@ -866,16 +832,6 @@ function CreateProductDialog() {
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                             placeholder="Enter product name"
-                        />
-                    </div>
-
-                    <div className="flex flex-col gap-2">
-                        <Label htmlFor="vendorName">Vendor Name</Label>
-                        <Input
-                            id="vendorName"
-                            value={vendorName}
-                            onChange={(e) => setVendorName(e.target.value)}
-                            placeholder="Enter vendor name"
                         />
                     </div>
 
@@ -950,10 +906,12 @@ function ActionsCell({ row }: { row: Row<z.infer<typeof productSchema>> }) {
                     <DropdownMenuItem onClick={() => ref.current?.()}>
                         Edit
                     </DropdownMenuItem>
-                    <DeleteProductDialog item={item}>
-                        <DropdownMenuItem className="text-red-600">
+                    <DeleteProductDialog
+                        item={item}
+                    >
+                        <div className="text-red-600 cursor-pointer px-2 py-1.5 text-sm hover:bg-red-100 rounded-sm">
                             Delete
-                        </DropdownMenuItem>
+                        </div>
                     </DeleteProductDialog>
                 </DropdownMenuContent>
             </DropdownMenu>

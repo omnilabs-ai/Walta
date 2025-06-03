@@ -1,59 +1,64 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createProduct } from "@/app/service/supabase/products";
-import { z } from "zod";
 import { validateApiKey } from "@/app/service/supabase/lib/validate";
 import { getUser } from "@/app/service/supabase/user";
+import { z } from "zod";
 
-
+// Expect price from frontend in dollars
 const createProductSchema = z.object({
   name: z.string().min(1, "Product name is required"),
-  price_cents: z.number().int().positive("Price must be a positive number"),
+  price: z.number().positive("Price must be a positive number"),
+  description: z.string().optional(),
+  type: z.string().optional(),
+  metadata: z.record(z.any()).optional(),
 });
 
 export async function POST(request: NextRequest) {
   try {
-    const user_id = await validateApiKey(request.headers.get('authorization') ?? '')
-    
+    const authHeader = request.headers.get("authorization") ?? "";
+    const user_id = await validateApiKey(authHeader);
+
     if (!user_id) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const user = await getUser(user_id)
-    
+    const user = await getUser(user_id);
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
-    
-    const stripe_vendor_id = user.stripe_vendor_id
 
     const body = await request.json();
-    
-    const validationResult = createProductSchema.safeParse(body);
+    const parsed = createProductSchema.safeParse(body);
 
-    if (!validationResult.success) {
+    if (!parsed.success) {
       return NextResponse.json(
-        { 
+        {
           error: "Invalid request format",
-          details: validationResult.error.format()
+          details: parsed.error.flatten(),
         },
         { status: 400 }
       );
     }
 
+    const { name, price, description, type, metadata } = parsed.data;
+    const price_cents = Math.round(price * 100); // convert dollars to cents
+
     const result = await createProduct({
-      ...body,
-      stripe_vendor_id,
-      user_id
+      name,
+      price_cents,
+      description: description ?? "",
+      type: type ?? "",
+      metadata: metadata ?? {},
+      user_id,
+      stripe_vendor_id: user.stripe_vendor_id,
     });
+
     return NextResponse.json(result, { status: 201 });
 
   } catch (error: unknown) {
-    
     console.error("Error in createProduct route:", error);
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-    return NextResponse.json(
-      { error: errorMessage },
-      { status: 500 }
-    );
+    const message =
+      error instanceof Error ? error.message : "Unknown server error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
-} 
+}
