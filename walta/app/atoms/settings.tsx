@@ -42,9 +42,9 @@ export const productSchema = z.object({
   name: z.string(),
   type: z.string(),
   price: z.number(),
-  vendorName: z.string(),
   user_id: z.string(),
   created_at: z.instanceof(Timestamp),
+  deleted: z.boolean()
 });
 
 export const agentsAtom = atom<z.infer<typeof agentSchema>[]>([])

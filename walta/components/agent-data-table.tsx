@@ -12,13 +12,11 @@ import {
   useSensor,
   useSensors,
   MeasuringStrategy,  // Add this import
-  type DragEndEvent,
   type UniqueIdentifier,
 } from "@dnd-kit/core"
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers"
 import {
   SortableContext,
-  arrayMove,
   useSortable,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable"
@@ -209,7 +207,6 @@ interface AgentDataTableProps {
 
 export function AgentDataTable({ data }: AgentDataTableProps) {
   console.count("🔄 AgentDataTable rendered");
-
   const [rowSelection, setRowSelection] = React.useState({});
   const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
@@ -371,10 +368,11 @@ export function AgentDataTable({ data }: AgentDataTableProps) {
   });
 
   // Memoize row IDs for SortableContext
-  const rowIds = useMemo(() =>
-    table.getRowModel().rows.map(row => row.id),
-    [table.getRowModel().rows]
-  );
+  const tableRows = table.getRowModel().rows;
+
+  const rowIds = useMemo(() => {
+    return tableRows.map((row) => row.id);
+  }, [tableRows]);
 
   // function handleDragEnd(event: DragEndEvent) {
   //   const { active, over } = event;
