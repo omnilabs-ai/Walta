@@ -18,42 +18,6 @@ export async function createUser(user: User) {
     return data;
 }
 
-// export async function getUser() {
-//     const supabase = await createClient();
-
-//     const { data, error } = await supabase.from('users').select('*').single();
-
-//     if (error) {
-//         throw new Error(error.message);
-//     }
-
-//     return data;
-// }
-
-// export async function getUser() {
-//   const supabase = await createClient();
-
-//   const {
-//     data: { user },
-//     error: authError,
-//   } = await supabase.auth.getUser();
-
-//   if (authError || !user) {
-//     throw new Error("User not authenticated");
-//   }
-
-//   const { data, error } = await supabase
-//     .from("users")
-//     .select("*")
-//     .eq("user_id", user.id)
-//     .single();
-
-//   if (error) {
-//     throw new Error(error.message);
-//   }
-
-//   return data;
-// }
 export async function getUser(userId: string) {
   
     const { data, error } = await supabaseAdmin

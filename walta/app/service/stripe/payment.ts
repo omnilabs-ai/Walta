@@ -15,7 +15,7 @@ async function processPayment(customerId: string, paymentAmount: number, payment
         const paymentIntent = await stripe.paymentIntents.create(
             {
                 payment_method: paymentMethod.id,
-                amount: paymentAmount * 100,
+                amount: paymentAmount,
                 currency: "usd",
                 confirm: true,
                 return_url: "http://localhost:3000/payment/success",

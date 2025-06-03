@@ -42,7 +42,7 @@ export async function createProduct(data: CreateProductData): Promise<Product> {
     return product;
 }
 
-export async function getProducts(productId?: string): Promise<Product | Product[]> {
+export async function getProducts(productId?: string): Promise<Product[]> {
     let query = supabaseAdmin
         .from('products')
         .select();
@@ -59,7 +59,7 @@ export async function getProducts(productId?: string): Promise<Product | Product
         if (!data || data.length === 0) {
             throw new Error('Product not found');
         }
-        return data[0];
+        return [data[0]];
     }
 
     return data;

@@ -1,79 +1,59 @@
-import { createClient } from './server';
-import { v4 as uuidv4 } from 'uuid';
+import { supabaseAdmin } from "./lib/supabaseAdmin";
 
 export interface Transaction {
-    transaction_id: string;
-    from_user_id: string;
-    to_user_id: string;
-    from_agent_id: string;
-    amount: number;
+    agent_id: string;
+    vendor_id: string;
+    product_id: string;
+    customer_id: string;
+    amount_cents: number;
     status: string;
-    created_at: string;
     metadata: Record<string, string>;
 }
 
-export async function addTransaction(user_id: string, transaction: Omit<Transaction, 'transaction_id' | 'created_at'>) {
-    const supabase = await createClient();
-    const transaction_id = uuidv4();
-    const created_at = new Date().toISOString();
+export async function addTransaction(transaction: Transaction) {
 
-    const newTransaction = {
-        ...transaction,
-        transaction_id,
-        created_at
-    };
-
-    // First, update the user's transactions
-    const { error: transactionError } = await supabase
-        .from('users')
-        .update({
-            transactions: {
-                [transaction_id]: newTransaction
-            }
-        })
-        .eq('id', user_id);
-
-    if (transactionError) throw new Error(transactionError.message);
-
-    // Then, update the agent's transaction list
-    const { error: agentError } = await supabase
-        .from('agents')
-        .update({
-            transaction_list: supabase.rpc('append_to_array', {
-                arr: 'transaction_list',
-                value: transaction_id
-            })
-        })
-        .eq('id', transaction.from_agent_id);
-
-    if (agentError) throw new Error(agentError.message);
-
-    return { newTransaction, transaction_id };
-}
-
-export async function getTransactions(user_id: string, transaction_id?: string) {
-    const supabase = await createClient();
-
-    if (transaction_id) {
-        const { data, error } = await supabase
-            .from('users')
-            .select('transactions')
-            .eq('id', user_id)
-            .single();
-
-        if (error) throw new Error(error.message);
-        if (!data?.transactions?.[transaction_id]) {
-            throw new Error(`Transaction with id ${transaction_id} not found`);
-        }
-        return data.transactions[transaction_id];
-    }
-
-    const { data, error } = await supabase
-        .from('users')
-        .select('transactions')
-        .eq('id', user_id)
+    const { data: newTransaction, error} = await supabaseAdmin
+        .from('transactions')
+        .insert(transaction)
+        .select()
         .single();
 
     if (error) throw new Error(error.message);
-    return data?.transactions || {};
+
+    return newTransaction;
 }
+
+export async function getCustomerTransactions(customer_id: string, transaction_id?: string) {
+    let query = supabaseAdmin
+        .from('transactions')
+        .select('*')
+        .eq('customer_id', customer_id);
+
+    if (transaction_id) {
+        query = query.eq('id', transaction_id);
+    }
+
+    const { data, error } = await query;    
+
+    if (error) throw new Error(error.message);
+    return data;
+}
+
+export async function getVendorTransactions(vendor_id: string, transaction_id?: string) {
+    console.log("getVendorTransactions", vendor_id, transaction_id);
+
+    let query = supabaseAdmin
+        .from('transactions')
+        .select('*')
+        .eq('vendor_id', vendor_id);
+
+    if (transaction_id) {
+        query = query.eq('id', transaction_id);
+    }
+
+    const { data, error } = await query;
+    console.log("data", data);
+
+    if (error) throw new Error(error.message);
+    return data;
+}   
